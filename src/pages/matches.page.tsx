@@ -1,47 +1,34 @@
 import { Link } from '@tanstack/react-router'
 import type { FC } from 'react'
-import { MatchCard, type MatchCardPropsType } from '@/components/app/match'
-import { mockMatches } from '@/data/match'
-import { mockTeams } from '@/data/team'
+import { MatchCard } from '@/components/app/match'
 import { Route } from '@/routes/tournaments/$id/matches'
+import type { TeamType } from '@/types'
 
-const { useParams } = Route
+const { useParams, useLoaderData } = Route
 
 const MatchesPage: FC = () => {
 	const { id } = useParams()
 
-	const tournamentMatches = mockMatches
-		.filter((m) => m.tournamentId === id)
-		.map(({ _id, time, status, scoreA, scoreB, teamAId, teamBId }) => {
-			const teamAName = mockTeams.find((t) => t._id === teamAId)?.name || ''
-			const teamBName = mockTeams.find((t) => t._id === teamBId)?.name || ''
-			return {
-				_id,
-				time,
-				status,
-				scoreA,
-				scoreB,
-				teamAName,
-				teamBName,
-			} satisfies MatchCardPropsType & {
-				_id: string
-			}
-		})
+	const matches = useLoaderData()
 
 	return (
 		<div className="max-w-md mx-auto flex flex-col gap-4">
 			<h1 className="text-3xl font-bold">Matches</h1>
 
-			{tournamentMatches.map((m) => (
+			{matches.map((match) => (
 				<Link
-					key={m._id}
+					key={match._id}
 					params={{
 						id,
-						matchId: m._id,
+						matchId: match._id,
 					}}
 					to="/tournaments/$id/$matchId/match"
 				>
-					<MatchCard {...m} />
+					<MatchCard
+						{...match}
+						teamAName={(match.teamAId as unknown as TeamType).name}
+						teamBName={(match.teamBId as unknown as TeamType).name}
+					/>
 				</Link>
 			))}
 		</div>

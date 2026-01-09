@@ -10,12 +10,13 @@ type TournamentType = {
 	location: string
 	status: TournamentStatusType
 	description?: string
+	teams: TeamType['_id'][]
 }
 
 type TeamType = {
 	_id: string
 	name: string
-	players: string[]
+	players: PlayerType[]
 	tournamentId: TournamentType['_id']
 	location?: string
 }
@@ -31,17 +32,35 @@ type MatchType = {
 	// scheduledTime?: string;
 	// matchDate: string;
 	time: string
+	location?: string
+}
+
+type PlayerType = {
+	_id: string
+	name: string
 }
 
 type CommentaryType = {
-	_id: string
-	matchId: MatchType['_id']
+	id: string
+	// matchId: MatchType['_id']
 	timestamp: string
 	type: CommentaryTypesType
 	teamId: TeamType['_id']
-	player?: string
+	playerId?: PlayerType['_id']
 	text?: string
 }
+
+type SuccessType<T = Record<string, unknown>> = {
+	success: true
+	data: T
+}
+
+type ErrorType<E = Error> = {
+	success: false
+	error: E
+}
+
+type ResType<T = Record<string, unknown>> = SuccessType<T> | ErrorType
 
 export type {
 	TournamentStatusType,
@@ -50,4 +69,6 @@ export type {
 	TeamType,
 	MatchType,
 	CommentaryType,
+	ResType,
+	PlayerType,
 }

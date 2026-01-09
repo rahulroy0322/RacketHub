@@ -11,13 +11,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card'
-import { mockMatches } from '@/data/match'
-import { mockTeams } from '@/data/team'
-import { mockTournaments } from '@/data/tournament'
 import { Route } from '@/routes/tournaments/$id/$matchId/match'
-import type { TeamType } from '@/types'
+import useLive from '@/stores/live.store'
+import type { MatchType, TeamType } from '@/types'
 
-const { useParams } = Route
+const { useLoaderData, useParams } = Route
 
 type TeamScorePropsType = Pick<TeamType, 'name' | 'players'> & {
 	score: number
@@ -28,13 +26,13 @@ const TeamScore: FC<TeamScorePropsType> = ({ name, players, score }) => (
 		<CardHeader>
 			<CardTitle>{name}</CardTitle>
 			<CardDescription className="space-y-2">
-				{players.map((p) => (
+				{players.map(({ _id, name }) => (
 					<Badge
 						className="text-xs"
-						key={p}
+						key={_id}
 						variant={'outline'}
 					>
-						{p}
+						{name}
 					</Badge>
 				))}
 			</CardDescription>
@@ -48,28 +46,25 @@ const TeamScore: FC<TeamScorePropsType> = ({ name, players, score }) => (
 	</Card>
 )
 
-type TeamScoresPropsType = {
-	aId: TeamType['_id']
-	bId: TeamType['_id']
-}
+const TeamScores: FC = () => {
+	const teamA = useLive((state) => state.teamA)
+	const teamB = useLive((state) => state.teamB)
+	const scoreA = useLive((state) => state.scoreA)
+	const scoreB = useLive((state) => state.scoreB)
 
-const TeamScores: FC<TeamScoresPropsType> = ({ aId, bId }) => {
-	const [teamA, teamB] = [
-		// biome-ignore lint/style/noNonNullAssertion: checked
-		mockTeams.find((t) => t._id === aId)!,
-		// biome-ignore lint/style/noNonNullAssertion: checked
-		mockTeams.find((t) => t._id === bId)!,
-	]
+	if (!teamA || !teamB) {
+		return null
+	}
 
 	return (
 		<div className="grid grid-cols-2 gap-2">
 			<TeamScore
 				{...teamA}
-				score={0}
+				score={scoreA}
 			/>
 			<TeamScore
 				{...teamB}
-				score={0}
+				score={scoreB}
 			/>
 		</div>
 	)
@@ -77,23 +72,16 @@ const TeamScores: FC<TeamScoresPropsType> = ({ aId, bId }) => {
 
 const MatchPage: FC = () => {
 	const { id, matchId } = useParams()
-	const tournament = mockTournaments.find((t) => t._id === id)
-	const match = mockMatches.find((m) => m._id === matchId)
 
-	if (!match || !tournament) {
-		return null
-	}
-
-	const { status, teamAId, teamBId, time } = match
-	const { location } = tournament
-
-	const [teamA, teamB] = [
-		mockTeams.find((t) => t._id === teamAId),
-		mockTeams.find((t) => t._id === teamBId),
-	]
-
-	if (!teamA || !teamB) {
-		return null
+	const {
+		teamAId: { name: teamAName },
+		teamBId: { name: teamBName },
+		status,
+		time,
+		location,
+	} = useLoaderData() as unknown as Omit<MatchType, 'teamAId' | 'teamBId'> & {
+		teamAId: TeamType
+		teamBId: TeamType
 	}
 
 	return (
@@ -102,7 +90,7 @@ const MatchPage: FC = () => {
 				<CardHeader>
 					<CardTitle className="flex items-center justify-between">
 						<span>
-							{teamA.name} VS {teamB.name}
+							{teamAName} VS {teamBName}
 						</span>
 						<StatusBadge status={status} />
 					</CardTitle>
@@ -123,12 +111,7 @@ const MatchPage: FC = () => {
 				</CardHeader>
 			</Card>
 
-			{(status === 'live' || status === 'completed') && (
-				<TeamScores
-					aId={teamAId}
-					bId={teamBId}
-				/>
-			)}
+			{(status === 'live' || status === 'completed') && <TeamScores />}
 
 			<div className="flex items-center gap-2">
 				<Button

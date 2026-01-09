@@ -1,27 +1,33 @@
-import { Link } from '@tanstack/react-router'
 import type { FC } from 'react'
 import { TournamentCart } from '@/components/app/tournament'
-import { mockTournaments } from '@/data/tournament'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
+import { Route } from '@/routes/tournaments'
 
-const TournamentsPage: FC = () => (
-	<div className="max-w-md mx-auto flex flex-col gap-6">
-		<h1 className="text-3xl font-bold text-slate-900">Tournaments</h1>
+const { useLoaderData } = Route
 
-		{mockTournaments.map((t) => (
-			<Link
-				key={t._id}
-				params={{
-					id: t._id,
-				}}
-				to="/tournaments/$id"
-			>
-				<TournamentCart
-					{...t}
-					key={t._id}
-				/>
-			</Link>
-		))}
-	</div>
-)
+const TournamentsPage: FC = () => {
+	const tournaments = useLoaderData()
+
+	return (
+		<div className="max-w-md mx-auto flex flex-col gap-6">
+			<h1 className="text-3xl font-bold text-slate-900">Tournaments</h1>
+
+			{!tournaments || !tournaments.length ? (
+				<Card>
+					<CardHeader>
+						<CardTitle>No Tournaments Were Found</CardTitle>
+					</CardHeader>
+				</Card>
+			) : (
+				tournaments.map((t) => (
+					<TournamentCart
+						{...t}
+						key={t._id}
+					/>
+				))
+			)}
+		</div>
+	)
+}
 
 export { TournamentsPage }

@@ -18,13 +18,13 @@ const TeamCard: FC<TeamCardPropsType> = ({ name, players }) => (
 			<CardDescription>Players</CardDescription>
 		</CardHeader>
 		<CardContent className="grid grid-cols-2 gap-4">
-			{players.map((player) => (
+			{players.map(({ _id, name }) => (
 				<div
 					className="flex items-center gap-4 bg-blue-300/50 p-2 rounded-md"
-					key={player}
+					key={_id}
 				>
 					<UserRound className="size-6" />
-					<span>{player}</span>
+					<span>{name}</span>
 				</div>
 			))}
 		</CardContent>

@@ -1,57 +1,70 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import type { FC } from 'react'
-import { TeamControls } from '@/components/app/controlls'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card'
+import { Live } from '@/components/app/live/main'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { fetchMatch } from './route'
 
-const EventsPage: FC = () => {
-	// const { matches, addPoint, addFoul, undoLastAction } = useApp();
-	// const liveMatch = matches.find(m => m.tournamentId === tournamentId && m.status === 'live');
+import '@/io/main'
 
-	const liveMatch = true
-
-	if (!liveMatch) {
-		return (
-			<div className="max-w-md mx-auto space-y-4">
-				<Card>
-					<CardContent className="py-12 text-center">
-						<p className="text-slate-500">
-							Matches Is Not Live. Events controls will appear when a match is
-							live.
-						</p>
-					</CardContent>
-				</Card>
-			</div>
-		)
-	}
-
+const Scheduled: FC = () => {
 	return (
 		<div className="max-w-md mx-auto space-y-4">
 			<Card>
-				<CardHeader>
-					<CardTitle>Live Match</CardTitle>
-					<CardDescription>Control panel for active match</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<h3 className="text-3xl font-bold text-center">10 - 15</h3>
+				<CardContent className="py-12 text-center space-y-4">
+					<p className="text-slate-500">
+						Matches Is Not Live. Events controls will appear when a match is
+						live.
+					</p>
+					<Button
+						className="border-current shadow shadow-current"
+						variant={'outline'}
+					>
+						Go Live
+					</Button>
 				</CardContent>
 			</Card>
-
-			<div className="grid-cols-2 grid gap-2">
-				<TeamControls teamId={'1'} />
-				<TeamControls teamId="2" />
-			</div>
 		</div>
 	)
 }
 
+const EventsPage: FC = () => {
+	const { status } = useLoaderData()
+
+	switch (status) {
+		case 'scheduled':
+			return <Scheduled />
+		case 'live':
+			return <Live />
+		case 'completed':
+			return
+
+		default:
+			throw new Error(`"${status satisfies never}" not handled yet`)
+	}
+}
+
 const Route = createFileRoute('/tournaments/$id/$matchId/events')({
 	component: EventsPage,
+	loader: async ({ context, params: { matchId } }) => {
+		const data = await context.queryClient.fetchQuery({
+			queryKey: ['match', matchId],
+			queryFn: () => fetchMatch(matchId),
+		})
+
+		if (!data || 'error' in data) {
+			console.error(data.error.message)
+
+			return redirect({
+				to: '/',
+				replace: true,
+			}) as never
+		}
+
+		return data
+	},
 })
+
+const { useLoaderData } = Route
 
 export { Route }

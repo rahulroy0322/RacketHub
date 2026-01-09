@@ -9,40 +9,46 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card'
-import { mockTournaments } from '@/data/tournament'
+import { Route } from '@/routes/index'
 
-const HomePage: FC = () => (
-	<div className="max-w-md mx-auto space-y-6 py-8">
-		<div className="text-center space-y-4">
-			<h1 className="text-4xl font-bold text-slate-900">🎾 RacketHub</h1>
-			<p className="text-lg text-slate-600">
-				Your ultimate platform for hosting and following racket sports
-				tournaments
-			</p>
-			<Button
-				asChild
-				className="w-full mt-6"
-				size="lg"
-			>
-				<Link to="/tournaments">View Tournaments</Link>
-			</Button>
+const { useLoaderData } = Route
+
+const HomePage: FC = () => {
+	const tournaments = useLoaderData()
+
+	return (
+		<div className="max-w-md mx-auto space-y-6 py-8">
+			<div className="text-center space-y-4">
+				<h1 className="text-4xl font-bold text-slate-900">🎾 RacketHub</h1>
+				<p className="text-lg text-slate-600">
+					Your ultimate platform for hosting and following racket sports
+					tournaments
+				</p>
+				<Button
+					asChild
+					className="w-full mt-6"
+					size="lg"
+				>
+					<Link to="/tournaments">View Tournaments</Link>
+				</Button>
+			</div>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Upcoming Tournaments</CardTitle>
+					<CardDescription>Don't miss out on the action</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					{tournaments.map((t) => (
+						<TournamentCart
+							{...t}
+							key={t._id}
+						/>
+					))}
+				</CardContent>
+			</Card>
 		</div>
-
-		<Card>
-			<CardHeader>
-				<CardTitle>Upcoming Tournaments</CardTitle>
-				<CardDescription>Don't miss out on the action</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-3">
-				{mockTournaments.map((t) => (
-					<TournamentCart
-						{...t}
-						key={t._id}
-					/>
-				))}
-			</CardContent>
-		</Card>
-	</div>
-)
+	)
+}
 
 export { HomePage }

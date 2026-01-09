@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC, useEffect } from 'react'
 import {
 	Card,
 	CardContent,
@@ -7,11 +7,13 @@ import {
 	CardTitle,
 } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { commentaryTypes } from '@/constants/type'
-import { typeToMsgMap } from '@/constants/type-map'
-import { mockTeams } from '@/data/team'
+
 import { cn } from '@/lib/utils'
+import { Route } from '@/routes/tournaments/$id/$matchId/comentary'
+import useComments from '@/stores/comments.store'
 import type { CommentaryType } from '@/types'
+
+const { useLoaderData } = Route
 
 const Commentary: FC<CommentaryType> = ({ text, type }) => (
 	<div
@@ -32,32 +34,38 @@ const Commentary: FC<CommentaryType> = ({ text, type }) => (
 	</div>
 )
 
-const commentary: CommentaryType[] = [
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-	...commentaryTypes,
-].map(
-	(type, i) =>
-		({
-			_id: `${i}`,
-			matchId: '1',
-			teamId: mockTeams.at(0)?._id ?? '1',
-			timestamp: '',
-			type,
-			player: '1',
-			text: typeToMsgMap[type],
-		}) satisfies CommentaryType
-)
+const Comments: FC = () => {
+	const comments = useComments((state) => state.comments)
+
+	return (
+		<ScrollArea className="h-125">
+			{comments.length === 0 ? (
+				<p className="text-center text-slate-500 py-8">
+					No Events yet. Events will appear here.
+				</p>
+			) : (
+				<div className="flex flex-col gap-2">
+					{comments.map((c) => (
+						<Commentary
+							{...c}
+							key={c.id}
+						/>
+					))}
+				</div>
+			)}
+		</ScrollArea>
+	)
+}
 
 const CommentaryPage: FC = () => {
+	const { comments } = useLoaderData()
+
+	useEffect(() => {
+		useComments.setState({
+			comments: comments || [],
+		})
+	}, [comments])
+
 	return (
 		<div className="max-w-md mx-auto space-y-4">
 			<h1 className="text-3xl font-bold">Commentary</h1>
@@ -68,22 +76,7 @@ const CommentaryPage: FC = () => {
 					<CardDescription>Real-time match updates</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<ScrollArea className="h-125">
-						{commentary.length === 0 ? (
-							<p className="text-center text-slate-500 py-8">
-								No Events yet. Events will appear here.
-							</p>
-						) : (
-							<div className="flex flex-col gap-2">
-								{commentary.map((c) => (
-									<Commentary
-										{...c}
-										key={c._id}
-									/>
-								))}
-							</div>
-						)}
-					</ScrollArea>
+					<Comments />
 				</CardContent>
 			</Card>
 		</div>

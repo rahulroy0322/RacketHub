@@ -14,6 +14,7 @@ import { Route as TournamentsIndexRouteImport } from './routes/tournaments/index
 import { Route as TournamentsIdIndexRouteImport } from './routes/tournaments/$id/index'
 import { Route as TournamentsIdTeamsRouteImport } from './routes/tournaments/$id/teams'
 import { Route as TournamentsIdMatchesRouteImport } from './routes/tournaments/$id/matches'
+import { Route as TournamentsIdMatchIdRouteRouteImport } from './routes/tournaments/$id/$matchId/route'
 import { Route as TournamentsIdMatchIdMatchRouteImport } from './routes/tournaments/$id/$matchId/match'
 import { Route as TournamentsIdMatchIdEventsRouteImport } from './routes/tournaments/$id/$matchId/events'
 import { Route as TournamentsIdMatchIdComentaryRouteImport } from './routes/tournaments/$id/$matchId/comentary'
@@ -43,28 +44,35 @@ const TournamentsIdMatchesRoute = TournamentsIdMatchesRouteImport.update({
   path: '/tournaments/$id/matches',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TournamentsIdMatchIdRouteRoute =
+  TournamentsIdMatchIdRouteRouteImport.update({
+    id: '/tournaments/$id/$matchId',
+    path: '/tournaments/$id/$matchId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TournamentsIdMatchIdMatchRoute =
   TournamentsIdMatchIdMatchRouteImport.update({
-    id: '/tournaments/$id/$matchId/match',
-    path: '/tournaments/$id/$matchId/match',
-    getParentRoute: () => rootRouteImport,
+    id: '/match',
+    path: '/match',
+    getParentRoute: () => TournamentsIdMatchIdRouteRoute,
   } as any)
 const TournamentsIdMatchIdEventsRoute =
   TournamentsIdMatchIdEventsRouteImport.update({
-    id: '/tournaments/$id/$matchId/events',
-    path: '/tournaments/$id/$matchId/events',
-    getParentRoute: () => rootRouteImport,
+    id: '/events',
+    path: '/events',
+    getParentRoute: () => TournamentsIdMatchIdRouteRoute,
   } as any)
 const TournamentsIdMatchIdComentaryRoute =
   TournamentsIdMatchIdComentaryRouteImport.update({
-    id: '/tournaments/$id/$matchId/comentary',
-    path: '/tournaments/$id/$matchId/comentary',
-    getParentRoute: () => rootRouteImport,
+    id: '/comentary',
+    path: '/comentary',
+    getParentRoute: () => TournamentsIdMatchIdRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/tournaments': typeof TournamentsIndexRoute
+  '/tournaments/$id/$matchId': typeof TournamentsIdMatchIdRouteRouteWithChildren
   '/tournaments/$id/matches': typeof TournamentsIdMatchesRoute
   '/tournaments/$id/teams': typeof TournamentsIdTeamsRoute
   '/tournaments/$id': typeof TournamentsIdIndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/tournaments': typeof TournamentsIndexRoute
+  '/tournaments/$id/$matchId': typeof TournamentsIdMatchIdRouteRouteWithChildren
   '/tournaments/$id/matches': typeof TournamentsIdMatchesRoute
   '/tournaments/$id/teams': typeof TournamentsIdTeamsRoute
   '/tournaments/$id': typeof TournamentsIdIndexRoute
@@ -86,6 +95,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/tournaments/': typeof TournamentsIndexRoute
+  '/tournaments/$id/$matchId': typeof TournamentsIdMatchIdRouteRouteWithChildren
   '/tournaments/$id/matches': typeof TournamentsIdMatchesRoute
   '/tournaments/$id/teams': typeof TournamentsIdTeamsRoute
   '/tournaments/$id/': typeof TournamentsIdIndexRoute
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/tournaments'
+    | '/tournaments/$id/$matchId'
     | '/tournaments/$id/matches'
     | '/tournaments/$id/teams'
     | '/tournaments/$id'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/tournaments'
+    | '/tournaments/$id/$matchId'
     | '/tournaments/$id/matches'
     | '/tournaments/$id/teams'
     | '/tournaments/$id'
@@ -118,6 +130,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/tournaments/'
+    | '/tournaments/$id/$matchId'
     | '/tournaments/$id/matches'
     | '/tournaments/$id/teams'
     | '/tournaments/$id/'
@@ -129,12 +142,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TournamentsIndexRoute: typeof TournamentsIndexRoute
+  TournamentsIdMatchIdRouteRoute: typeof TournamentsIdMatchIdRouteRouteWithChildren
   TournamentsIdMatchesRoute: typeof TournamentsIdMatchesRoute
   TournamentsIdTeamsRoute: typeof TournamentsIdTeamsRoute
   TournamentsIdIndexRoute: typeof TournamentsIdIndexRoute
-  TournamentsIdMatchIdComentaryRoute: typeof TournamentsIdMatchIdComentaryRoute
-  TournamentsIdMatchIdEventsRoute: typeof TournamentsIdMatchIdEventsRoute
-  TournamentsIdMatchIdMatchRoute: typeof TournamentsIdMatchIdMatchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -174,39 +185,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TournamentsIdMatchesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tournaments/$id/$matchId': {
+      id: '/tournaments/$id/$matchId'
+      path: '/tournaments/$id/$matchId'
+      fullPath: '/tournaments/$id/$matchId'
+      preLoaderRoute: typeof TournamentsIdMatchIdRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tournaments/$id/$matchId/match': {
       id: '/tournaments/$id/$matchId/match'
-      path: '/tournaments/$id/$matchId/match'
+      path: '/match'
       fullPath: '/tournaments/$id/$matchId/match'
       preLoaderRoute: typeof TournamentsIdMatchIdMatchRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TournamentsIdMatchIdRouteRoute
     }
     '/tournaments/$id/$matchId/events': {
       id: '/tournaments/$id/$matchId/events'
-      path: '/tournaments/$id/$matchId/events'
+      path: '/events'
       fullPath: '/tournaments/$id/$matchId/events'
       preLoaderRoute: typeof TournamentsIdMatchIdEventsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TournamentsIdMatchIdRouteRoute
     }
     '/tournaments/$id/$matchId/comentary': {
       id: '/tournaments/$id/$matchId/comentary'
-      path: '/tournaments/$id/$matchId/comentary'
+      path: '/comentary'
       fullPath: '/tournaments/$id/$matchId/comentary'
       preLoaderRoute: typeof TournamentsIdMatchIdComentaryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TournamentsIdMatchIdRouteRoute
     }
   }
 }
 
+interface TournamentsIdMatchIdRouteRouteChildren {
+  TournamentsIdMatchIdComentaryRoute: typeof TournamentsIdMatchIdComentaryRoute
+  TournamentsIdMatchIdEventsRoute: typeof TournamentsIdMatchIdEventsRoute
+  TournamentsIdMatchIdMatchRoute: typeof TournamentsIdMatchIdMatchRoute
+}
+
+const TournamentsIdMatchIdRouteRouteChildren: TournamentsIdMatchIdRouteRouteChildren =
+  {
+    TournamentsIdMatchIdComentaryRoute: TournamentsIdMatchIdComentaryRoute,
+    TournamentsIdMatchIdEventsRoute: TournamentsIdMatchIdEventsRoute,
+    TournamentsIdMatchIdMatchRoute: TournamentsIdMatchIdMatchRoute,
+  }
+
+const TournamentsIdMatchIdRouteRouteWithChildren =
+  TournamentsIdMatchIdRouteRoute._addFileChildren(
+    TournamentsIdMatchIdRouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TournamentsIndexRoute: TournamentsIndexRoute,
+  TournamentsIdMatchIdRouteRoute: TournamentsIdMatchIdRouteRouteWithChildren,
   TournamentsIdMatchesRoute: TournamentsIdMatchesRoute,
   TournamentsIdTeamsRoute: TournamentsIdTeamsRoute,
   TournamentsIdIndexRoute: TournamentsIdIndexRoute,
-  TournamentsIdMatchIdComentaryRoute: TournamentsIdMatchIdComentaryRoute,
-  TournamentsIdMatchIdEventsRoute: TournamentsIdMatchIdEventsRoute,
-  TournamentsIdMatchIdMatchRoute: TournamentsIdMatchIdMatchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
