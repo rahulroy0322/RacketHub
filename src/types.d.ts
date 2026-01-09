@@ -46,7 +46,7 @@ type CommentaryType = {
 	timestamp: string
 	type: CommentaryTypesType
 	teamId: TeamType['_id']
-	playerId?: PlayerType['_id']
+	playerId?: PlayerType
 	text?: string
 }
 

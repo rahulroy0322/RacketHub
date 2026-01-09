@@ -1,4 +1,4 @@
-import { type FC, useEffect } from 'react'
+import { type FC, useEffect, useRef } from 'react'
 import {
 	Card,
 	CardContent,
@@ -23,6 +23,7 @@ const Commentary: FC<CommentaryType> = ({ text, type, playerId }) => (
 				'border-blue-500': type === 'p:fair',
 				'border-destructive': type === 'p:out',
 				'border-rose-500': type.startsWith('ir:'),
+				'bg-yellow-50 border-yellow-600': playerId,
 			}
 		)}
 	>
@@ -32,10 +33,7 @@ const Commentary: FC<CommentaryType> = ({ text, type, playerId }) => (
 				'grid grid-cols-5': playerId,
 			})}
 		>
-			{/*
-			 // Todo!
-			  */}
-			{playerId && <span className="font-semibold">Jhon Do</span>}
+			{playerId && <span className="font-semibold">{playerId.name}</span>}
 			<p className="col-span-4">{text}</p>
 		</div>
 	</div>
@@ -44,8 +42,16 @@ const Commentary: FC<CommentaryType> = ({ text, type, playerId }) => (
 const Comments: FC = () => {
 	const comments = useComments((state) => state.comments)
 
+	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		comments // just for lint
+		ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+	}, [comments])
+
 	return (
 		<ScrollArea className="h-125">
+			<div ref={ref} />
 			{comments.length === 0 ? (
 				<p className="text-center text-slate-500 py-8">
 					No Events yet. Events will appear here.
@@ -69,7 +75,7 @@ const CommentaryPage: FC = () => {
 
 	useEffect(() => {
 		useComments.setState({
-			comments: comments || [],
+			comments: [...(comments || [])].reverse(),
 		})
 	}, [comments])
 

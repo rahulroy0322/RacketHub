@@ -15,7 +15,7 @@ const addComment = (comment: CommentaryType) => {
 	const { comments } = get()
 
 	set({
-		comments: [...comments, comment],
+		comments: [comment, ...comments],
 	})
 }
 
