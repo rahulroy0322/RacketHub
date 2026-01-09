@@ -15,7 +15,7 @@ import type { CommentaryType } from '@/types'
 
 const { useLoaderData } = Route
 
-const Commentary: FC<CommentaryType> = ({ text, type }) => (
+const Commentary: FC<CommentaryType> = ({ text, type, playerId }) => (
 	<div
 		className={cn(
 			'p-3 bg-slate-50 rounded-lg border border-l-4 border-yellow-400',
@@ -27,8 +27,15 @@ const Commentary: FC<CommentaryType> = ({ text, type }) => (
 		)}
 	>
 		<div className="text-[10px] text-slate-500 mb-1">{'11:11 Am'}</div>
-		<div className="grid grid-cols-5 text-slate-700 text-sm">
-			<span className="font-semibold">Jhon Do</span>
+		<div
+			className={cn('text-slate-700 text-sm', {
+				'grid grid-cols-5': playerId,
+			})}
+		>
+			{/*
+			 // Todo!
+			  */}
+			{playerId && <span className="font-semibold">Jhon Do</span>}
 			<p className="col-span-4">{text}</p>
 		</div>
 	</div>
