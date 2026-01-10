@@ -1,14 +1,21 @@
 import type { FC } from 'react'
 import { AdminForm } from '@/components/app/form/admin'
 import { CreateTournamentForm } from '@/components/app/forms/tournament'
+import { Route } from '@/routes/admin/tournament'
 
-const TournamentPage: FC = () => (
-	<AdminForm
-		description="Configure tournament details"
-		title="Create New Tournament"
-	>
-		<CreateTournamentForm />
-	</AdminForm>
-)
+const { useLoaderData } = Route
+
+const TournamentPage: FC = () => {
+	const teams = useLoaderData()
+
+	return (
+		<AdminForm
+			description="Configure tournament details"
+			title="Create New Tournament"
+		>
+			<CreateTournamentForm teams={teams} />
+		</AdminForm>
+	)
+}
 
 export { TournamentPage }

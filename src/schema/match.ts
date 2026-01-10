@@ -17,7 +17,7 @@ const matchSchema = z.object({
 	teamBId: z.string(),
 	scoreA: z.number().default(0),
 	scoreB: z.number().default(0),
-	time: z.string(),
+	time: z.iso.time(),
 	status: z.enum(matchStatus),
 	location: z.string().min(5).optional(),
 	description: z.string().optional(),

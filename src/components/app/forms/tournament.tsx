@@ -1,4 +1,6 @@
 import { useForm } from '@tanstack/react-form'
+import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -25,40 +27,17 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { createTournament } from '@/data/admin'
 import { cn } from '@/lib/utils'
-import type { teamSchema } from '@/schema/team'
 import { tournamentSchema, tournamentStatus } from '@/schema/tournament'
-import type { AnyType } from '@/types'
+import type { AnyType, TeamType, TournamentType } from '@/types'
 
-const teams: (z.infer<typeof teamSchema> & {
-	_id: string
-})[] = [
-	{
-		_id: '1',
-		players: [],
-		name: 'Team 1',
-		location: 'xas',
-	},
-	{
-		_id: '2',
-		name: 'xxsaoxj',
-		location: 'xas',
-		players: [],
-	},
-	{
-		_id: '3',
-		name: 'xcascsa',
-		location: 'xas',
-		players: [],
-	},
-	{
-		_id: '4',
-		name: 'xcsanc',
-		players: [],
-	},
-]
+type CreateTournamentFormPropsType = {
+	teams: TeamType[]
+}
 
-const CreateTournamentForm: FC = () => {
+const CreateTournamentForm: FC<CreateTournamentFormPropsType> = ({ teams }) => {
+	const navigate = useNavigate()
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -71,9 +50,20 @@ const CreateTournamentForm: FC = () => {
 		validators: {
 			onSubmit: tournamentSchema as unknown as AnyType,
 		},
-		onSubmit({ value }) {
-			// biome-ignore lint/suspicious/noConsole: <xplanation>
-			console.log(value)
+		onSubmit: () => mutate(),
+	})
+
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['team', form.state.values.name],
+		mutationFn: async () => {
+			const tournament = await createTournament(
+				form.state.values as unknown as TournamentType
+			)
+			if (tournament?._id) {
+				navigate({
+					to: '/admin/dashboard',
+				})
+			}
 		},
 	})
 
@@ -325,6 +315,7 @@ const CreateTournamentForm: FC = () => {
 
 			<Button
 				className="w-full"
+				disabled={isPending}
 				size="lg"
 				type="submit"
 			>

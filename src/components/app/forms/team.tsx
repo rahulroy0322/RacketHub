@@ -1,4 +1,6 @@
 import { useForm } from '@tanstack/react-form'
+import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -17,33 +19,18 @@ import {
 	MultiSelectTrigger,
 	MultiSelectValue,
 } from '@/components/ui/multi-select'
+import { createTeam } from '@/data/admin'
 import { cn } from '@/lib/utils'
 import { teamSchema } from '@/schema/team'
-import type { AnyType, PlayerType } from '@/types'
+import type { AnyType, PlayerType, TeamType } from '@/types'
 
-const players: PlayerType[] = [
-	{
-		_id: '1',
-		name: 'x',
-		location: 'xas',
-	},
-	{
-		_id: '2',
-		name: 'xxsaoxj',
-		location: 'xas',
-	},
-	{
-		_id: '3',
-		name: 'xcascsa',
-		location: 'xas',
-	},
-	{
-		_id: '4',
-		name: 'xcsanc',
-	},
-]
+type CreateTeamFormPropsType = {
+	players: PlayerType[]
+}
 
-const CreateTeamForm: FC = () => {
+const CreateTeamForm: FC<CreateTeamFormPropsType> = ({ players }) => {
+	const navigate = useNavigate()
+
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -53,9 +40,19 @@ const CreateTeamForm: FC = () => {
 		validators: {
 			onSubmit: teamSchema as unknown as AnyType,
 		},
-		onSubmit({ value }) {
-			// biome-ignore lint/suspicious/noConsole: <xplanation>
-			console.log(value)
+		onSubmit: () => mutate(),
+	})
+
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['team', form.state.values.name],
+		mutationFn: async () => {
+			const team = await createTeam(form.state.values as unknown as TeamType)
+
+			if (team?._id) {
+				navigate({
+					to: '/admin/dashboard',
+				})
+			}
 		},
 	})
 
@@ -200,6 +197,7 @@ const CreateTeamForm: FC = () => {
 			</FieldGroup>
 			<Button
 				className="w-full"
+				disabled={isPending}
 				size="lg"
 				type="submit"
 			>

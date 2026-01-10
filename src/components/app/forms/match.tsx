@@ -1,4 +1,6 @@
 import { useForm } from '@tanstack/react-form'
+import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -17,40 +19,17 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { createMatch } from '@/data/admin'
 import { cn } from '@/lib/utils'
 import { matchSchema } from '@/schema/match'
-import type { teamSchema } from '@/schema/team'
-import type { AnyType } from '@/types'
+import type { AnyType, MatchType, TeamType, TournamentType } from '@/types'
 
-const teams: (z.infer<typeof teamSchema> & {
-	_id: string
-})[] = [
-	{
-		_id: '1',
-		players: [],
-		name: 'Team 1',
-		location: 'xas',
-	},
-	{
-		_id: '2',
-		name: 'xxsaoxj',
-		location: 'xas',
-		players: [],
-	},
-	{
-		_id: '3',
-		name: 'xcascsa',
-		location: 'xas',
-		players: [],
-	},
-	{
-		_id: '4',
-		name: 'xcsanc',
-		players: [],
-	},
-]
+type CreateMatchFormPropsType = {
+	tournament: TournamentType
+}
 
-const CreateMatchForm: FC = () => {
+const CreateMatchForm: FC<CreateMatchFormPropsType> = ({ tournament }) => {
+	const navigate = useNavigate()
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -60,17 +39,29 @@ const CreateMatchForm: FC = () => {
 			scoreB: 0,
 			teamAId: undefined,
 			teamBId: undefined,
-			time: undefined,
+			time: '18:00',
 			status: 'scheduled',
 			comments: [],
-			tournamentId: '',
+			tournamentId: tournament._id,
 		} as unknown as z.infer<typeof matchSchema>,
 		validators: {
 			onSubmit: matchSchema as AnyType,
 		},
-		onSubmit({ value }) {
-			// biome-ignore lint/suspicious/noConsole: <explaation>
-			console.log(value)
+		onSubmit: () => mutate(),
+	})
+
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['player', form.state.values.name, form.state.values.location],
+		mutationFn: async () => {
+			const player = await createMatch(
+				form.state.values as unknown as MatchType
+			)
+
+			if (player?._id) {
+				navigate({
+					to: '/admin/dashboard',
+				})
+			}
 		},
 	})
 
@@ -81,6 +72,8 @@ const CreateMatchForm: FC = () => {
 		},
 		[form.handleSubmit]
 	)
+
+	const teams = tournament.teams as unknown as TeamType[]
 
 	return (
 		<form
@@ -331,6 +324,7 @@ const CreateMatchForm: FC = () => {
 
 			<Button
 				className="w-full"
+				disabled={isPending}
 				size="lg"
 				type="submit"
 			>

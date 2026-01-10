@@ -1,4 +1,6 @@
 import { useForm } from '@tanstack/react-form'
+import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -9,11 +11,13 @@ import {
 	FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { createPlayer } from '@/data/admin'
 import { cn } from '@/lib/utils'
 import { playerSchema } from '@/schema/player'
-import type { AnyType } from '@/types'
+import type { AnyType, PlayerType } from '@/types'
 
 const CreatePlayerForm: FC = () => {
+	const navigate = useNavigate()
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -21,6 +25,20 @@ const CreatePlayerForm: FC = () => {
 		} satisfies z.infer<typeof playerSchema>,
 		validators: {
 			onSubmit: playerSchema as unknown as AnyType,
+		},
+		onSubmit: () => mutate(),
+	})
+
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['player', form.state.values.name, form.state.values.location],
+		mutationFn: async () => {
+			const player = await createPlayer(form.state.values as PlayerType)
+
+			if (player?._id) {
+				navigate({
+					to: '/admin/dashboard',
+				})
+			}
 		},
 	})
 
@@ -108,6 +126,7 @@ const CreatePlayerForm: FC = () => {
 			</FieldGroup>
 			<Button
 				className="w-full"
+				disabled={isPending}
 				size="lg"
 				type="submit"
 			>
