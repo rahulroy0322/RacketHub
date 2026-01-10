@@ -38,6 +38,7 @@ type MatchType = {
 type PlayerType = {
 	_id: string
 	name: string
+	location?: string
 }
 
 type CommentaryType = {
@@ -62,7 +63,11 @@ type ErrorType<E = Error> = {
 
 type ResType<T = Record<string, unknown>> = SuccessType<T> | ErrorType
 
+// biome-ignore lint/suspicious/noExplicitAny: supress only
+type AnyType = any
+
 export type {
+	AnyType,
 	TournamentStatusType,
 	MatchStatusType,
 	TournamentType,

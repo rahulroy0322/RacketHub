@@ -23,4 +23,25 @@ const saveToDb = async (id: string, data: CommentaryType) => {
 	console.log('created', import.meta.env.DEV ? _data.data : undefined)
 }
 
-export { saveToDb }
+const updateStatus = async (id: string, status: MatchType['status']) => {
+	const res = await fetch(`${BASE_URL}/matches/${id}`, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			status,
+		} satisfies Partial<MatchType>),
+	})
+
+	const _data = (await res.json()) as ResType<{
+		match: MatchType | null
+	}>
+
+	if (!_data.success) {
+		return console.error(_data.error)
+	}
+	return _data.data.match
+}
+
+export { saveToDb, updateStatus }

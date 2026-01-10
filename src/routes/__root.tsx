@@ -26,6 +26,7 @@ const Route = createRootRouteWithContext<MyRouterContext>()({
 			/>
 		</div>
 	),
+	// notFoundComponent: ()=> <div>sanxcsankj</div>
 })
 
 export { Route }
