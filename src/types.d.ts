@@ -66,7 +66,15 @@ type ResType<T = Record<string, unknown>> = SuccessType<T> | ErrorType
 // biome-ignore lint/suspicious/noExplicitAny: supress only
 type AnyType = any
 
+type UserType = {
+	_id: string
+	name: string
+	email: string
+	role: 'admin' | 'super' | 'user'
+}
+
 export type {
+	UserType,
 	AnyType,
 	TournamentStatusType,
 	MatchStatusType,

@@ -19,7 +19,7 @@ const HomePage: FC = () => {
 	return (
 		<div className="max-w-md mx-auto space-y-6 py-8">
 			<div className="text-center space-y-4">
-				<h1 className="text-4xl font-bold text-slate-900">🎾 RacketHub</h1>
+				<h2 className="text-4xl font-bold text-slate-900">🎾 RacketHub</h2>
 				<p className="text-lg text-slate-600">
 					Your ultimate platform for hosting and following racket sports
 					tournaments

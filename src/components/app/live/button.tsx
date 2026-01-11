@@ -25,8 +25,6 @@ const ControllButton: FC<ControllButtonPropsType> = ({ point, matchId }) => {
 
 		saveToDb(matchId, data)
 
-		// TODO! save to db
-
 		switch (point) {
 			case 'p:fair':
 			case 'p:out':
