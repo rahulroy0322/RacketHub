@@ -52,11 +52,13 @@ const Nav: FC = () => {
 }
 
 const Header: FC = () => (
-	<header className="flex items-center justify-between border-b border-ring pb-4">
-		<Link to="/">
-			<h2 className="text-md font-bold text-slate-900">🎾 RacketHub</h2>
-		</Link>
-		<Nav />
+	<header className=" border-b border-ring p-4 sticky top-0 left-0 bg-background shadow-md z-99999">
+		<div className="container m-auto flex items-center justify-between">
+			<Link to="/">
+				<h2 className="text-md font-bold text-slate-900">🎾 RacketHub</h2>
+			</Link>
+			<Nav />
+		</div>
 	</header>
 )
 

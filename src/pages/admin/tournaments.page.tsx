@@ -118,10 +118,12 @@ const TournamentsPage: FC = () => {
 									<Badge
 										variant={
 											status === 'live'
-												? 'outline'
+												? 'default'
 												: status === 'completed'
-													? 'default'
-													: 'secondary'
+													? 'outline'
+													: status === 'upcoming'
+														? 'secondary'
+														: undefined
 										}
 									>
 										{status}

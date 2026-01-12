@@ -15,9 +15,11 @@ type MyRouterContext = {
 
 const RootLayOut: FC = () => {
 	return (
-		<div className="min-h-screen bg-linear-to-b from-slate-100 to-blue-200 p-4">
+		<div className="min-h-screen bg-linear-to-b from-slate-100 to-blue-200">
 			<Header />
-			<Outlet />
+			<main className="p-4">
+				<Outlet />
+			</main>
 			<Toaster
 				closeButton
 				richColors

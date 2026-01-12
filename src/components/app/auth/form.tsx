@@ -21,16 +21,14 @@ const AuthForm: FC<AuthFormPropsType> = ({
 	desc,
 	title,
 }) => (
-	<div className="mt-6">
-		<Card>
-			<CardHeader>
-				<CardTitle>{title}</CardTitle>
-				<CardDescription>{desc}</CardDescription>
-			</CardHeader>
-			<CardContent>{children}</CardContent>
+	<Card className="max-w-prose m-auto">
+		<CardHeader>
+			<CardTitle>{title}</CardTitle>
+			<CardDescription>{desc}</CardDescription>
+		</CardHeader>
+		<CardContent>{children}</CardContent>
 
-			<CardFooter>{actions}</CardFooter>
-		</Card>
-	</div>
+		<CardFooter>{actions}</CardFooter>
+	</Card>
 )
 export { AuthForm }
