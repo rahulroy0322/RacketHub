@@ -39,12 +39,18 @@ const HomePage: FC = () => {
 					<CardDescription>Don't miss out on the action</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-3">
-					{tournaments.map((t) => (
-						<TournamentCart
-							{...t}
-							key={t._id}
-						/>
-					))}
+					{!tournaments.length ? (
+						<p className="text-center text-destructive">
+							No Upcoming/Live Tournament
+						</p>
+					) : (
+						tournaments.map((t) => (
+							<TournamentCart
+								{...t}
+								key={t._id}
+							/>
+						))
+					)}
 				</CardContent>
 			</Card>
 		</div>

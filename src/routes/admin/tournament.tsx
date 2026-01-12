@@ -29,9 +29,9 @@ const Route = createFileRoute('/admin/tournament')({
 		if (!data || !Array.isArray(data)) {
 			console.error(data.error.message)
 
-			return redirect({
+			throw redirect({
 				href: '/',
-			}) as never
+			})
 		}
 
 		return data

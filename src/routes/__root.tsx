@@ -5,38 +5,37 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import type { FC } from 'react'
 import { Toaster } from 'sonner'
 import { Header } from '@/components/app/Header'
-import { AuthContextProvider } from '@/context/auth'
+import type { AuthContextType } from '@/context/auth'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
-interface MyRouterContext {
+type MyRouterContext = {
 	queryClient: QueryClient
+	auth: AuthContextType
 }
 
 const RootLayOut: FC = () => {
 	return (
-		<AuthContextProvider>
-			<div className="min-h-screen bg-linear-to-b from-slate-100 to-blue-200 p-4">
-				<Header />
-				<Outlet />
-				<Toaster
-					closeButton
-					richColors
-					swipeDirections={['bottom', 'right']}
-				/>
-				<TanStackDevtools
-					config={{
-						position: 'bottom-right',
-					}}
-					plugins={[
-						{
-							name: 'Tanstack Router',
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-						TanStackQueryDevtools,
-					]}
-				/>
-			</div>
-		</AuthContextProvider>
+		<div className="min-h-screen bg-linear-to-b from-slate-100 to-blue-200 p-4">
+			<Header />
+			<Outlet />
+			<Toaster
+				closeButton
+				richColors
+				swipeDirections={['bottom', 'right']}
+			/>
+			<TanStackDevtools
+				config={{
+					position: 'bottom-right',
+				}}
+				plugins={[
+					{
+						name: 'Tanstack Router',
+						render: <TanStackRouterDevtoolsPanel />,
+					},
+					TanStackQueryDevtools,
+				]}
+			/>
+		</div>
 	)
 }
 

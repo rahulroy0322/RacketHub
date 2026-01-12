@@ -1,22 +1,22 @@
 import { useMutation } from '@tanstack/react-query'
-import { redirect } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import type { FC } from 'react'
 import { Button } from '@/components/ui/button'
-import { updateStatus } from '@/data/main'
+import { updateMatchStatus } from '@/data/main'
 import { Route } from '@/routes/tournaments/$id/$matchId/events'
 
 const { useParams } = Route
 
 const GoLiveButton: FC = () => {
 	const { matchId, id } = useParams()
-
+	const navigate = useNavigate()
 	const { data, isPending, mutate } = useMutation({
 		mutationKey: ['match', matchId],
-		mutationFn: () => updateStatus(matchId, 'live'),
+		mutationFn: () => updateMatchStatus(matchId, 'live'),
 	})
 
 	if (!data === null) {
-		return redirect({
+		return navigate({
 			to: '/tournaments/$id/$matchId',
 			params: {
 				id,

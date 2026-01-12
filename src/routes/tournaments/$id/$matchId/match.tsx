@@ -14,9 +14,9 @@ const Route = createFileRoute('/tournaments/$id/$matchId/match')({
 		if (!data || 'error' in data) {
 			console.error(data.error.message)
 
-			return redirect({
+			throw redirect({
 				href: '/',
-			}) as never
+			})
 		}
 
 		return data

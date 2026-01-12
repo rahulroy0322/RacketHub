@@ -169,6 +169,8 @@ const AuthContextProvider: FC<AuthContextProviderPropsType> = ({
 // 	return context
 // }
 
+export type { AuthContextType }
+
 export { useAuth, AuthContextProvider }
 
 export default useAuth

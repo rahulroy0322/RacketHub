@@ -15,10 +15,10 @@ const Route = createFileRoute('/tournaments/$id/$matchId/events')({
 		if (!data || 'error' in data) {
 			console.error(data.error.message)
 
-			return redirect({
+			throw redirect({
 				to: '/',
 				replace: true,
-			}) as never
+			})
 		}
 
 		return data

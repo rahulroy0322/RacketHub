@@ -1,7 +1,10 @@
-import { Link } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
+import { Link, useRouter } from '@tanstack/react-router'
 import { Edit, Link2, PlusCircle, Trash2 } from 'lucide-react'
 import type { FC } from 'react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import {
 	Table,
@@ -11,9 +14,67 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
+import { destroyTournament } from '@/data/main'
 import { Route } from '@/routes/admin/tournaments'
 
 const { useLoaderData } = Route
+
+type DestroyButtonPropsType = {
+	id: string
+	name: string
+}
+
+const DestroyButton: FC<DestroyButtonPropsType> = ({ name, id }) => {
+	const router = useRouter()
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['tournament', id],
+		mutationFn: async () => {
+			toast.promise(
+				async () => {
+					const data = await destroyTournament(id)
+
+					if (!data) {
+						throw new Error('some thing went wrong')
+					}
+
+					if ('error' in data) {
+						if ('message' in data.error) {
+							throw data.error
+						}
+						throw new Error(data.error)
+					}
+				},
+				{
+					loading: `Deleting ${name}...`,
+					success: () => {
+						router.invalidate({
+							sync: true,
+						})
+
+						return `Tournament "${name}" Deleted.`
+					},
+					error: ({ message }: Error) => (
+						<div>
+							<b>Error :</b>
+							<span>{message}</span>
+						</div>
+					),
+				}
+			)
+		},
+	})
+
+	return (
+		<Button
+			disabled={isPending}
+			onClick={mutate as unknown as () => void}
+			size={'icon-sm'}
+			variant={'destructive'}
+		>
+			<Trash2 size={15} />
+		</Button>
+	)
+}
 
 const TournamentsPage: FC = () => {
 	const tournaments = useLoaderData()
@@ -98,15 +159,10 @@ const TournamentsPage: FC = () => {
 										>
 											<PlusCircle size={15} />
 										</Link>
-										{/* 
-<Link to='/admin/$id/match' params={{
-	id: _id
-}}> */}
-										<Trash2
-											className="text-destructive"
-											size={15}
+										<DestroyButton
+											id={_id}
+											name={name}
 										/>
-										{/* </Link> */}
 									</div>
 								</TableCell>
 							</TableRow>

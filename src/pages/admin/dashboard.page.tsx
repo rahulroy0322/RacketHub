@@ -16,7 +16,7 @@ const DashBoardPage: FC = () => {
 	const { tournaments, teams, matchs, players } = useLoaderData()
 
 	return (
-		<div>
+		<div className="pt-4">
 			<div className="grid grid-cols-2 gap-1.5">
 				<AdminCard
 					description="Total Tournaments"

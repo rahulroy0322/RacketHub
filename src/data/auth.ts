@@ -2,10 +2,7 @@ import { AUTH_KEY } from '@/constants/auth'
 import { BASE_URL } from '@/constants/url'
 import type { ResType, UserType } from '@/types'
 
-const post = async <T extends Record<string, unknown>>(
-	route: string,
-	data: unknown
-) => {
+const post = async (route: string, data: unknown) => {
 	const res = await fetch(`${BASE_URL}/auth/${route}/`, {
 		method: 'POST',
 		headers: {
@@ -14,50 +11,27 @@ const post = async <T extends Record<string, unknown>>(
 		body: JSON.stringify(data),
 	})
 
-	return (await res.json()) as ResType<{
-		[Key in keyof T]: T[Key] | null
+	const _data = (await res.json()) as ResType<{
+		user: UserType | null
+		token: string
 	}>
-}
 
-const register = async (user: Omit<UserType, '_id' | 'role'>) => {
-	const data = await post<{
-		user: UserType
-		token: string
-	}>('register', user)
-
-	if (!data.success) {
-		console.error(data.error.message)
-		throw data.error
-	}
-	if (!data.data.user) {
-		throw new Error('SomeThing went wrong')
+	if (!_data.success) {
+		console.error(_data.error.message)
+		throw _data.error
 	}
 
 	// biome-ignore lint/style/noNonNullAssertion: trust me
-	saveToken(data.data.token!)
+	saveToken(_data.data.token!)
 
-	return data.data.user
+	return _data.data.user
 }
 
-const login = async (user: Omit<UserType, '_id' | 'role' | 'name'>) => {
-	const data = await post<{
-		user: UserType
-		token: string
-	}>('login', user)
+const register = (user: Omit<UserType, '_id' | 'role'>) =>
+	post('register', user)
 
-	if (!data.success) {
-		console.error(data.error.message)
-		throw data.error
-	}
-	if (!data.data.user) {
-		throw new Error('SomeThing went wrong')
-	}
-
-	// biome-ignore lint/style/noNonNullAssertion: trust me
-	saveToken(data.data.token!)
-
-	return data.data.user
-}
+const login = async (user: Omit<UserType, '_id' | 'role' | 'name'>) =>
+	post('login', user)
 
 const saveToken = (token: string) => {
 	localStorage.setItem(AUTH_KEY, token)

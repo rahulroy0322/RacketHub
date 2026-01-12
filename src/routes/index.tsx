@@ -7,15 +7,15 @@ const Route = createFileRoute('/')({
 	loader: async ({ context }) => {
 		const data = await context.queryClient.fetchQuery({
 			queryKey: ['tournaments'],
-			queryFn: fetchTournaments,
+			queryFn: () => fetchTournaments(false),
 		})
 
 		if (!data || !Array.isArray(data)) {
 			console.error(data.error.message)
 
-			return redirect({
+			throw redirect({
 				href: '/',
-			}) as never
+			})
 		}
 
 		return data

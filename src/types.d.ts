@@ -45,7 +45,7 @@ type CommentaryType = {
 	id: string
 	// matchId: MatchType['_id']
 	timestamp: string
-	type: CommentaryTypesType
+	type: CommentaryTypesType | 'compleate'
 	teamId: TeamType['_id']
 	playerId?: PlayerType
 	text?: string

@@ -1,8 +1,9 @@
+import { useMutation } from '@tanstack/react-query'
 import { type FC, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import type { CommentaryTypesType } from '@/constants/type'
 import { typeToMsgMap, typeToTitleMap } from '@/constants/type-map'
-import { saveToDb } from '@/data/main'
+import { saveToDb, updateMatchStatus } from '@/data/main'
 import { send } from '@/io/main'
 import useLive from '@/stores/live.store'
 import type { CommentaryType } from '@/types'
@@ -62,4 +63,41 @@ const bordCust = (type: CommentaryTypesType, data: CommentaryType) => {
 		data,
 	})
 }
-export { ControllButton }
+
+const CompleateButton: FC<Omit<ControllButtonPropsType, 'point'>> = ({
+	matchId,
+}) => {
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['match', matchId],
+		mutationFn: () => {
+			const data = {
+				id: Math.random().toString(),
+				teamId: useLive.getState().teamId || '',
+				timestamp: new Date().toTimeString(),
+				type: 'compleate',
+				text: 'Match Compleated',
+			} satisfies CommentaryType
+
+			bordCust('compleate' as unknown as CommentaryTypesType, data)
+
+			return Promise.all([
+				saveToDb(matchId, data),
+				updateMatchStatus(matchId, 'completed'),
+			])
+		},
+	})
+
+	return (
+		<Button
+			className="absolute top-2 shadow shadow-current right-2"
+			disabled={isPending}
+			onClick={mutate as unknown as () => void}
+			size={'sm'}
+			variant={'outline'}
+		>
+			Match Compleate
+		</Button>
+	)
+}
+
+export { ControllButton, CompleateButton }

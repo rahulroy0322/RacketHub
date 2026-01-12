@@ -11,6 +11,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card'
+import { adminRoles } from '@/constants/role'
+import { useAuth } from '@/context/auth'
 import { Route } from '@/routes/tournaments/$id/$matchId/match'
 import useLive from '@/stores/live.store'
 import type { MatchType, TeamType } from '@/types'
@@ -71,6 +73,7 @@ const TeamScores: FC = () => {
 }
 
 const MatchPage: FC = () => {
+	const { user } = useAuth()
 	const { id, matchId } = useParams()
 
 	const {
@@ -130,23 +133,24 @@ const MatchPage: FC = () => {
 						<span>Commentary</span>
 					</Link>
 				</Button>
-
-				<Button
-					asChild
-					className="h-24 flex flex-col gap-2 flex-1"
-					variant="outline"
-				>
-					<Link
-						params={{
-							id,
-							matchId,
-						}}
-						to="/tournaments/$id/$matchId/events"
+				{!user || !adminRoles.includes(user.role) ? null : (
+					<Button
+						asChild
+						className="h-24 flex flex-col gap-2 flex-1"
+						variant="outline"
 					>
-						<Antenna className="size-6" />
-						<span>Event</span>
-					</Link>
-				</Button>
+						<Link
+							params={{
+								id,
+								matchId,
+							}}
+							to="/tournaments/$id/$matchId/events"
+						>
+							<Antenna className="size-6" />
+							<span>Event</span>
+						</Link>
+					</Button>
+				)}
 			</div>
 		</div>
 	)

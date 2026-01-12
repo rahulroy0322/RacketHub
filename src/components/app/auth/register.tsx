@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { type QueryClient, useMutation } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { FC } from 'react'
 import { toast } from 'sonner'
@@ -12,13 +12,17 @@ import { AuthForm } from './form'
 
 type RegisterType = z.infer<typeof registerSchema>
 
-const RegisterForm: FC = () => {
+type RegisterFormPropsType = {
+	client: QueryClient
+}
+
+const RegisterForm: FC<RegisterFormPropsType> = ({ client }) => {
 	const navigate = useNavigate()
 	const form = useAppForm({
 		defaultValues: {
-			name: 'Raat',
-			email: 'raat@raat.com',
-			password: 'RAat@@101',
+			name: '',
+			email: '',
+			password: '',
 		} satisfies RegisterType,
 		validators: {
 			onSubmit: registerSchema,
@@ -36,10 +40,13 @@ const RegisterForm: FC = () => {
 					navigate({
 						to: '/',
 					})
+					client.invalidateQueries({
+						queryKey: ['auth'],
+					})
 					return 'Regiseter succesfully'
 				},
 				error: (e) => {
-					if (e instanceof Error) {
+					if ('message' in e) {
 						return e.message
 					}
 

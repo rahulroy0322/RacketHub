@@ -79,13 +79,13 @@ const TeamControls: FC = () => {
 		<div className="grid-cols-2 grid gap-1 bg-secondary-foreground/20 p-1 rounded-md">
 			<Button
 				onClick={setTeamA}
-				variant={teamId && teamId === teamA._id ? 'outline' : 'default'}
+				variant={teamId && teamId === teamA._id ? 'default' : 'outline'}
 			>
 				{teamA.name}
 			</Button>
 			<Button
 				onClick={setTeamB}
-				variant={teamId && teamId === teamB._id ? 'outline' : 'default'}
+				variant={teamId && teamId === teamB._id ? 'default' : 'outline'}
 			>
 				{teamB.name}
 			</Button>

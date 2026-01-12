@@ -3,8 +3,8 @@ import { Loader, UserRound } from 'lucide-react'
 import type { FC } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { adminRoles } from '@/constants/role'
 import useAuth from '@/context/auth'
-import { adminRoles } from '@/routes/admin/route'
 
 const Nav: FC = () => {
 	const { user, isLoading } = useAuth()
