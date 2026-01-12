@@ -1,11 +1,12 @@
 import type { FC } from 'react'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { FormBase, type FormControllPropsType } from './base'
 import { useFieldContext } from './main'
 
-type FormInputPropsType = FormControllPropsType & Parameters<typeof Input>[0]
+type FormTextAreaPropsType = FormControllPropsType &
+	Parameters<typeof Textarea>[0]
 
-const FormInput: FC<FormInputPropsType> = ({
+const FormTextArea: FC<FormTextAreaPropsType> = ({
 	label,
 	description,
 	...props
@@ -18,7 +19,7 @@ const FormInput: FC<FormInputPropsType> = ({
 			description={description}
 			label={label}
 		>
-			<Input
+			<Textarea
 				{...props}
 				aria-invalid={isInvalid}
 				id={field.name}
@@ -31,4 +32,4 @@ const FormInput: FC<FormInputPropsType> = ({
 	)
 }
 
-export { FormInput }
+export { FormTextArea }

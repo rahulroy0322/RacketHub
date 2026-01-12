@@ -1,68 +1,96 @@
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
+import { toast } from 'sonner'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
-import {
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { createMatch } from '@/data/admin'
-import { cn } from '@/lib/utils'
+import { FieldGroup } from '@/components/ui/field'
+import { SelectItem } from '@/components/ui/select'
+import { createMatch, updateMatch } from '@/data/admin'
 import { matchSchema } from '@/schema/match'
-import type { AnyType, MatchType, TeamType, TournamentType } from '@/types'
+import type { MatchType, TeamType, TournamentType } from '@/types'
+import { useAppForm } from '../form/main'
 
-type CreateMatchFormPropsType = {
+type ZodMatchType = z.infer<typeof matchSchema>
+
+type MatchFormPropsType = {
 	tournament: TournamentType
+	match?: MatchType
 }
 
-const CreateMatchForm: FC<CreateMatchFormPropsType> = ({ tournament }) => {
+const MatchForm: FC<MatchFormPropsType> = ({ tournament, match }) => {
+	const router = useRouter()
 	const navigate = useNavigate()
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
-			name: '',
-			location: undefined,
-			description: undefined,
-			scoreA: 0,
-			scoreB: 0,
-			teamAId: undefined,
-			teamBId: undefined,
-			time: '18:00',
-			status: 'scheduled',
+			name: match?.name || '',
+			location: match?.location || '',
+			description: match?.description || '',
+			scoreA: match?.scoreA || 0,
+			scoreB: match?.scoreB || 0,
+			teamAId: match?.teamAId || '',
+			teamBId: match?.teamBId || '',
+			time: match?.time || '18:00',
+			status: match?.status || 'scheduled',
 			comments: [],
 			tournamentId: tournament._id,
-		} as unknown as z.infer<typeof matchSchema>,
+		} satisfies ZodMatchType as ZodMatchType,
 		validators: {
-			onSubmit: matchSchema as AnyType,
+			onSubmit: matchSchema,
 		},
-		onSubmit: () => mutate(),
+		onSubmit: ({ value }) => mutate(value as unknown as MatchType),
 	})
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ['player', form.state.values.name, form.state.values.location],
-		mutationFn: async () => {
-			const player = await createMatch(
-				form.state.values as unknown as MatchType
-			)
+		mutationFn: async (value: MatchType) =>
+			toast.promise(
+				async () => {
+					const data = await (match?._id
+						? updateMatch(match._id, value)
+						: createMatch(value))
 
-			if (player?._id) {
-				navigate({
-					to: '/admin/dashboard',
-				})
-			}
-		},
+					if (!data) {
+						throw new Error('some thing went wrong')
+					}
+
+					if ('error' in data) {
+						if ('message' in data.error) {
+							throw data.error
+						}
+						throw new Error(data.error)
+					}
+				},
+				{
+					loading: match?._id ? 'Updating Match' : 'Creating Match',
+					success: () => {
+						if (match?._id) {
+							router.invalidate({
+								sync: true,
+							})
+
+							return 'Match Updated SuccessFully'
+						}
+
+						navigate({
+							to: '/admin/dashboard',
+						})
+
+						return 'Match Created SuccessFully'
+					},
+					error: (e: Error) => {
+						console.error(e)
+						const { message } = e
+
+						return (
+							<div>
+								<b>Error {match?._id ? 'Updating' : 'Creating'} Match</b>
+								<p>{message}</p>
+							</div>
+						)
+					},
+				}
+			),
 	})
 
 	const handleSubmit = useCallback(
@@ -81,245 +109,80 @@ const CreateMatchForm: FC<CreateMatchFormPropsType> = ({ tournament }) => {
 			onSubmit={handleSubmit}
 		>
 			<FieldGroup>
-				<form.Field name="name">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Match Name</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter Match name"
-									value={value}
-								/>
+				<form.AppField name="name">
+					{({ Input }) => (
+						<Input
+							label="Match Name"
+							placeholder="Enter Match name"
+						/>
+					)}
+				</form.AppField>
 
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+				<form.AppField name="location">
+					{({ Input }) => (
+						<Input
+							label="Location"
+							placeholder="Enter Match location"
+						/>
+					)}
+				</form.AppField>
 
-				<form.Field name={'location' as AnyType}>
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Location</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => {
-										const value = e.target.value
-
-										//@ts-expect-error
-										handleChange(value.length ? value : undefined)
-									}}
-									placeholder="Enter Match location"
-									value={value}
-								/>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
-
-				<form.Field name={'description' as AnyType}>
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Description</FieldLabel>
-								<Textarea
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => {
-										const value = e.target.value
-
-										//@ts-expect-error
-										handleChange(value.length ? value : undefined)
-									}}
-									placeholder="Enter Tournament description"
-									value={value}
-								/>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+				<form.AppField name="description">
+					{({ Textarea }) => (
+						<Textarea
+							label="Description"
+							placeholder="Enter Tournament description"
+						/>
+					)}
+				</form.AppField>
 
 				<div className="grid grid-cols-2 gap-2">
-					<form.Field name="teamAId">
-						{({
-							state: {
-								meta: { isTouched, isValid, errors },
-								value,
-							},
-							name,
-							handleBlur,
-							handleChange,
-						}) => {
-							const isInvalid = isTouched && !isValid
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={name}>Team A</FieldLabel>
-
-									<Select
-										aria-invalid={isInvalid}
-										autoComplete="off"
-										name={name}
-										onValueChange={(value) => handleChange(value)}
-										value={value}
+					<form.AppField name="teamAId">
+						{({ Select }) => (
+							<Select
+								label="Team A"
+								placeholder="Select Team A"
+							>
+								{teams.map(({ _id, name }) => (
+									<SelectItem
+										key={_id}
+										value={_id}
 									>
-										<SelectTrigger
-											id={name}
-											onBlur={handleBlur}
-										>
-											<SelectValue placeholder="Select Team A" />
-										</SelectTrigger>
-										<SelectContent>
-											{teams.map(({ _id, name }) => (
-												<SelectItem
-													key={_id}
-													value={_id}
-												>
-													{name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+										{name}
+									</SelectItem>
+								))}
+							</Select>
+						)}
+					</form.AppField>
 
-									{errors.length ? <FieldError errors={errors} /> : null}
-								</Field>
-							)
-						}}
-					</form.Field>
-					<form.Field name="teamBId">
-						{({
-							state: {
-								meta: { isTouched, isValid, errors },
-								value,
-							},
-							name,
-							handleBlur,
-							handleChange,
-						}) => {
-							const isInvalid = isTouched && !isValid
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={name}>Team B</FieldLabel>
-
-									<Select
-										aria-invalid={isInvalid}
-										autoComplete="off"
-										name={name}
-										onValueChange={(value) => handleChange(value)}
-										value={value}
+					<form.AppField name="teamBId">
+						{({ Select }) => (
+							<Select
+								label="Team B"
+								placeholder="Select Team B"
+							>
+								{teams.map(({ _id, name }) => (
+									<SelectItem
+										key={_id}
+										value={_id}
 									>
-										<SelectTrigger
-											id={name}
-											onBlur={handleBlur}
-										>
-											<SelectValue placeholder="Select Team B" />
-										</SelectTrigger>
-										<SelectContent>
-											{teams.map(({ _id, name }) => (
-												<SelectItem
-													key={_id}
-													value={_id}
-												>
-													{name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-
-									{errors.length ? <FieldError errors={errors} /> : null}
-								</Field>
-							)
-						}}
-					</form.Field>
+										{name}
+									</SelectItem>
+								))}
+							</Select>
+						)}
+					</form.AppField>
 				</div>
 
-				<form.Field name="time">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						name,
-						handleBlur,
-						handleChange,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Match Time</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter Match name"
-									type="time"
-									value={value}
-								/>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+				<form.AppField name="time">
+					{({ Input }) => (
+						<Input
+							label="Match Time"
+							placeholder="Enter Match name"
+							type="time"
+						/>
+					)}
+				</form.AppField>
 			</FieldGroup>
 
 			<Button
@@ -328,10 +191,14 @@ const CreateMatchForm: FC<CreateMatchFormPropsType> = ({ tournament }) => {
 				size="lg"
 				type="submit"
 			>
-				Create Tournament
+				{match?._id ? 'Update' : 'Create'} Match
 			</Button>
 		</form>
 	)
 }
+
+type CreateMatchFormPropsType = Pick<MatchFormPropsType, 'tournament'>
+
+const CreateMatchForm: FC<CreateMatchFormPropsType> = MatchForm
 
 export { CreateMatchForm }

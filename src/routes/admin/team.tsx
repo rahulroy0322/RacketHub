@@ -21,7 +21,7 @@ const Route = createFileRoute('/admin/team')({
 	component: TeamPage,
 	loader: async ({ context }) => {
 		const data = await context.queryClient.fetchQuery({
-			queryKey: ['tournaments'],
+			queryKey: ['players'],
 			queryFn: fetchPlayers,
 		})
 

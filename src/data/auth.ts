@@ -1,5 +1,5 @@
-import { AUTH_KEY } from '@/constants/auth'
 import { BASE_URL } from '@/constants/url'
+import { saveToken } from '@/lib/token'
 import type { ResType, UserType } from '@/types'
 
 const post = async (route: string, data: unknown) => {
@@ -32,9 +32,5 @@ const register = (user: Omit<UserType, '_id' | 'role'>) =>
 
 const login = async (user: Omit<UserType, '_id' | 'role' | 'name'>) =>
 	post('login', user)
-
-const saveToken = (token: string) => {
-	localStorage.setItem(AUTH_KEY, token)
-}
 
 export { register, login }

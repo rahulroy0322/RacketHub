@@ -11,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card'
-import { updateTournament } from '@/data/main'
+import { updateTournament } from '@/data/admin'
 import { cn } from '@/lib/utils'
 import { Route } from '@/routes/tournaments/$id/index'
 import type { TournamentStatusType } from '@/types'

@@ -1,12 +1,12 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { AUTH_KEY } from '@/constants/auth'
 import { BASE_URL } from '@/constants/url'
+import { getToken } from '@/lib/token'
 import { DashBoardPage } from '@/pages/admin/dashboard.page'
 import type { ResType } from '@/types'
 
 const fetchEveryThing = async () => {
-	const token = localStorage.getItem(AUTH_KEY) as string
+	const token = getToken()
 	const res = await fetch(`${BASE_URL}/admin/count/`, {
 		headers: {
 			'Content-Type': 'application/json',

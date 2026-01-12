@@ -23,16 +23,19 @@ type TeamType = {
 
 type MatchType = {
 	_id: string
+	// scheduledTime?: string;
+	// matchDate: string;
+
 	tournamentId: TournamentType['_id']
 	teamAId: TeamType['_id']
 	teamBId: TeamType['_id']
 	scoreA: number
 	scoreB: number
-	status: MatchStatusType
-	// scheduledTime?: string;
-	// matchDate: string;
 	time: string
-	location?: string
+	status: MatchStatusType
+	location?: string | undefined
+	description?: string | undefined
+	name?: string | undefined
 }
 
 type PlayerType = {

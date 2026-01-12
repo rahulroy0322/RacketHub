@@ -1,59 +1,88 @@
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
+import { toast } from 'sonner'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
-import {
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import {
-	MultiSelect,
-	MultiSelectContent,
-	MultiSelectGroup,
-	MultiSelectItem,
-	MultiSelectTrigger,
-	MultiSelectValue,
-} from '@/components/ui/multi-select'
-import { createTeam } from '@/data/admin'
-import { cn } from '@/lib/utils'
+import { FieldGroup } from '@/components/ui/field'
+import { MultiSelectGroup, MultiSelectItem } from '@/components/ui/multi-select'
+import { createTeam, updateTeam } from '@/data/admin'
 import { teamSchema } from '@/schema/team'
-import type { AnyType, PlayerType, TeamType } from '@/types'
+import type { PlayerType, TeamType } from '@/types'
+import { useAppForm } from '../form/main'
 
-type CreateTeamFormPropsType = {
+type ZodTeamType = z.infer<typeof teamSchema>
+
+type TeamFormPropsType = {
 	players: PlayerType[]
+	team?: TeamType
 }
 
-const CreateTeamForm: FC<CreateTeamFormPropsType> = ({ players }) => {
+const TeamForm: FC<TeamFormPropsType> = ({ players, team }) => {
 	const navigate = useNavigate()
-
-	const form = useForm({
+	const router = useRouter()
+	const form = useAppForm({
 		defaultValues: {
-			name: '',
-			players: [],
-			location: undefined,
-		} satisfies z.infer<typeof teamSchema>,
+			name: team?.name || '',
+			players: team?.players.map(({ _id }) => _id) || [],
+			location: team?.location || '',
+		} satisfies ZodTeamType as ZodTeamType,
 		validators: {
-			onSubmit: teamSchema as unknown as AnyType,
+			onSubmit: teamSchema,
 		},
-		onSubmit: () => mutate(),
+		onSubmit: ({ value }) => mutate(value as unknown as TeamType),
 	})
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ['team', form.state.values.name],
-		mutationFn: async () => {
-			const team = await createTeam(form.state.values as unknown as TeamType)
+		mutationFn: async (value: TeamType) =>
+			toast.promise(
+				async () => {
+					const data = await (team?._id
+						? updateTeam(team._id, value)
+						: createTeam(value))
 
-			if (team?._id) {
-				navigate({
-					to: '/admin/dashboard',
-				})
-			}
-		},
+					if (!data) {
+						throw new Error('some thing went wrong')
+					}
+
+					if ('error' in data) {
+						if ('message' in data.error) {
+							throw data.error
+						}
+						throw new Error(data.error)
+					}
+				},
+				{
+					loading: team?._id ? 'Updating Team' : 'Creating Team',
+					success: () => {
+						if (team?._id) {
+							router.invalidate({
+								sync: true,
+							})
+
+							return 'Team Updated SuccessFully'
+						}
+
+						navigate({
+							to: '/admin/dashboard',
+						})
+
+						return 'Team Created SuccessFully'
+					},
+					error: (e: Error) => {
+						console.error(e)
+						const { message } = e
+
+						return (
+							<div>
+								<b>Error {team?._id ? 'Updating' : 'Creating'} Team</b>
+								<p>{message}</p>
+							</div>
+						)
+					},
+				}
+			),
 	})
 
 	const handleSubmit = useCallback(
@@ -70,130 +99,45 @@ const CreateTeamForm: FC<CreateTeamFormPropsType> = ({ players }) => {
 			onSubmit={handleSubmit}
 		>
 			<FieldGroup>
-				<form.Field name="name">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Team Name</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter team name"
-									value={value}
-								/>
+				<form.AppField name="name">
+					{({ Input }) => (
+						<Input
+							label="Team Name"
+							placeholder="Enter team name"
+						/>
+					)}
+				</form.AppField>
 
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
-
-				<form.Field name={'players' as unknown as AnyType}>
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>
-									Select Players (minimum 2)
-								</FieldLabel>
-								<MultiSelect
-									defaultValues={value as unknown as string[]}
-									onValuesChange={(e) => handleChange(e as unknown as string)}
-								>
-									<MultiSelectTrigger
-										className={cn('w-full', {
-											'border-destructive!': isInvalid,
-										})}
+				<form.AppField name="players">
+					{({ MultiSelect }) => (
+						<MultiSelect
+							label="Players (minimum 2)"
+							placeholder="Select Players..."
+						>
+							<MultiSelectGroup>
+								{players.map(({ _id, name }) => (
+									<MultiSelectItem
+										key={_id}
+										value={_id}
 									>
-										<MultiSelectValue placeholder="Select Players..." />
-									</MultiSelectTrigger>
-									<MultiSelectContent
-										aria-invalid={isInvalid}
-										id={name}
-										onBlur={handleBlur}
-									>
-										<MultiSelectGroup>
-											{players.map(({ _id, name }) => (
-												<MultiSelectItem
-													key={_id}
-													value={_id}
-												>
-													<div className="flex flex-col gap-2 items-start">
-														<span>{name}</span>
-													</div>
-												</MultiSelectItem>
-											))}
-										</MultiSelectGroup>
-									</MultiSelectContent>
-								</MultiSelect>
+										<div className="flex flex-col gap-2 items-start">
+											<span>{name}</span>
+										</div>
+									</MultiSelectItem>
+								))}
+							</MultiSelectGroup>
+						</MultiSelect>
+					)}
+				</form.AppField>
 
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
-
-				<form.Field name={'location' as AnyType}>
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Location</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => {
-										const value = e.target.value
-
-										handleChange(value.length ? value : undefined)
-									}}
-									placeholder="Enter team location"
-									value={value}
-								/>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+				<form.AppField name="location">
+					{({ Input }) => (
+						<Input
+							label="Team Location"
+							placeholder="Enter team location"
+						/>
+					)}
+				</form.AppField>
 			</FieldGroup>
 			<Button
 				className="w-full"
@@ -201,10 +145,19 @@ const CreateTeamForm: FC<CreateTeamFormPropsType> = ({ players }) => {
 				size="lg"
 				type="submit"
 			>
-				Create Team
+				{team?._id ? 'Update' : 'Create'} Team
 			</Button>
 		</form>
 	)
 }
 
-export { CreateTeamForm }
+type CreateTeamFormPropsType = Omit<TeamFormPropsType, 'team'>
+
+const CreateTeamForm: FC<CreateTeamFormPropsType> = TeamForm
+
+type UpdateTeamFormPropsType = TeamFormPropsType & {
+	team: TeamType
+}
+const UpdateTeamForm: FC<UpdateTeamFormPropsType> = TeamForm
+
+export { CreateTeamForm, UpdateTeamForm }

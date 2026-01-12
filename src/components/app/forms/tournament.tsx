@@ -1,70 +1,95 @@
-import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { type FC, type FormEvent, useCallback } from 'react'
+import { toast } from 'sonner'
 import type z from 'zod'
 import { Button } from '@/components/ui/button'
-import {
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import {
-	MultiSelect,
-	MultiSelectContent,
-	MultiSelectGroup,
-	MultiSelectItem,
-	MultiSelectTrigger,
-	MultiSelectValue,
-} from '@/components/ui/multi-select'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { createTournament } from '@/data/admin'
-import { cn } from '@/lib/utils'
+import { FieldGroup } from '@/components/ui/field'
+import { MultiSelectGroup, MultiSelectItem } from '@/components/ui/multi-select'
+import { SelectItem } from '@/components/ui/select'
+import { createTournament, updateTournament } from '@/data/admin'
 import { tournamentSchema, tournamentStatus } from '@/schema/tournament'
-import type { AnyType, TeamType, TournamentType } from '@/types'
+import type { TeamType, TournamentType } from '@/types'
+import { useAppForm } from '../form/main'
 
-type CreateTournamentFormPropsType = {
+type TournamentFormPropsType = {
 	teams: TeamType[]
+	tournament?: TournamentType
 }
+type ZodTournamentType = z.infer<typeof tournamentSchema>
 
-const CreateTournamentForm: FC<CreateTournamentFormPropsType> = ({ teams }) => {
+const TournamentForm: FC<TournamentFormPropsType> = ({ teams, tournament }) => {
+	const router = useRouter()
 	const navigate = useNavigate()
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
-			name: '',
-			location: '',
-			description: undefined,
-			startDate: '',
-			status: 'upcoming',
-			teams: [],
-		} satisfies z.infer<typeof tournamentSchema>,
+			name: tournament?.name || '',
+			location: tournament?.location || '',
+			description: tournament?.description || '',
+			startDate: tournament?.startDate || '',
+			status: tournament?.status || 'upcoming',
+			teams: tournament?.teams || [],
+		} satisfies ZodTournamentType as ZodTournamentType,
 		validators: {
-			onSubmit: tournamentSchema as unknown as AnyType,
+			onSubmit: tournamentSchema,
 		},
-		onSubmit: () => mutate(),
+		onSubmit: ({ value }) => mutate(value as TournamentType),
 	})
 
 	const { isPending, mutate } = useMutation({
 		mutationKey: ['team', form.state.values.name],
-		mutationFn: async () => {
-			const tournament = await createTournament(
-				form.state.values as unknown as TournamentType
-			)
-			if (tournament?._id) {
-				navigate({
-					to: '/admin/dashboard',
-				})
-			}
-		},
+		mutationFn: async (value: TournamentType) =>
+			toast.promise(
+				async () => {
+					const data = await (tournament?._id
+						? updateTournament(tournament._id, value)
+						: createTournament(value))
+
+					if (!data) {
+						throw new Error('some thing went wrong')
+					}
+
+					if ('error' in data) {
+						if ('message' in data.error) {
+							throw data.error
+						}
+						throw new Error(data.error)
+					}
+				},
+				{
+					loading: tournament?._id
+						? 'Updating Tournament'
+						: 'Creating Tournament',
+					success: () => {
+						if (tournament?._id) {
+							router.invalidate({
+								sync: true,
+							})
+
+							return 'Tournament Updated SuccessFully'
+						}
+
+						navigate({
+							to: '/admin/dashboard',
+						})
+
+						return 'Tournament Created SuccessFully'
+					},
+					error: (e: Error) => {
+						console.error(e)
+						const { message } = e
+
+						return (
+							<div>
+								<b>
+									Error {tournament?._id ? 'Updating' : 'Creating'} Tournament
+								</b>
+								<p>{message}</p>
+							</div>
+						)
+					},
+				}
+			),
 	})
 
 	const handleSubmit = useCallback(
@@ -81,236 +106,85 @@ const CreateTournamentForm: FC<CreateTournamentFormPropsType> = ({ teams }) => {
 			onSubmit={handleSubmit}
 		>
 			<FieldGroup>
-				<form.Field name="name">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Tournament Name</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter Tournament name"
-									value={value}
-								/>
+				<form.AppField name="name">
+					{({ Input }) => (
+						<Input
+							label="Tournament Name"
+							placeholder="Enter Tournament name"
+						/>
+					)}
+				</form.AppField>
 
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+				<form.AppField name="location">
+					{({ Input }) => (
+						<Input
+							label="Location"
+							placeholder="Enter Tournament location"
+						/>
+					)}
+				</form.AppField>
 
-				<form.Field name="location">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Location</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter Tournament location"
-									value={value}
-								/>
+				<form.AppField name="description">
+					{({ Textarea }) => (
+						<Textarea
+							label="Description"
+							placeholder="Enter Tournament description"
+						/>
+					)}
+				</form.AppField>
 
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
-
-				<form.Field name={'description' as AnyType}>
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Description</FieldLabel>
-								<Textarea
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter Tournament description"
-									value={value}
-								/>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
-
-				<form.Field name="status">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Status</FieldLabel>
-
-								<Select
-									disabled
-									value={value}
+				<form.AppField name="status">
+					{({ Select }) => (
+						<Select
+							disabled
+							label="Status"
+							placeholder="Tournament Status"
+						>
+							{tournamentStatus.map((status) => (
+								<SelectItem
+									className="capitalize"
+									key={status}
+									value={status}
 								>
-									<SelectTrigger>
-										<SelectValue
-											className="capitalize"
-											placeholder="Tournament Status"
-										/>
-									</SelectTrigger>
-									<SelectContent>
-										{tournamentStatus.map((status) => (
-											<SelectItem
-												className="capitalize"
-												key={status}
-												value={status}
-											>
-												{status.at(0)?.toUpperCase()}
-												{status.slice(1)}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+									{status.at(0)?.toUpperCase()}
+									{status.slice(1)}
+								</SelectItem>
+							))}
+						</Select>
+					)}
+				</form.AppField>
 
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+				<form.AppField name="startDate">
+					{({ Input }) => (
+						<Input
+							label="Start Date"
+							placeholder="Enter Tournament location"
+							type="date"
+						/>
+					)}
+				</form.AppField>
 
-				<form.Field name="startDate">
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Start Date</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoComplete="off"
-									className={cn({
-										'border-destructive!': isInvalid,
-									})}
-									id={name}
-									name={name}
-									onBlur={handleBlur}
-									onChange={(e) => handleChange(e.target.value)}
-									placeholder="Enter Tournament location"
-									type="date"
-									value={value}
-								/>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
-
-				<form.Field name={'teams' as AnyType}>
-					{({
-						state: {
-							meta: { isTouched, isValid, errors },
-							value,
-						},
-						handleBlur,
-						handleChange,
-						name,
-					}) => {
-						const isInvalid = isTouched && !isValid
-						return (
-							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor={name}>Select Teams (minimum 2)</FieldLabel>
-								<MultiSelect
-									defaultValues={value as unknown as string[]}
-									onValuesChange={(e) => handleChange(e as unknown as string)}
-								>
-									<MultiSelectTrigger
-										className={cn('w-full', {
-											'border-destructive!': isInvalid,
-										})}
+				<form.AppField name="teams">
+					{({ MultiSelect }) => (
+						<MultiSelect
+							label="Select Teams (minimum 2)"
+							placeholder="Select Teams..."
+						>
+							<MultiSelectGroup>
+								{teams.map(({ _id, name }) => (
+									<MultiSelectItem
+										key={_id}
+										value={_id}
 									>
-										<MultiSelectValue placeholder="Select Teams..." />
-									</MultiSelectTrigger>
-									<MultiSelectContent
-										aria-invalid={isInvalid}
-										id={name}
-										onBlur={handleBlur}
-									>
-										<MultiSelectGroup>
-											{teams.map(({ _id, name }) => (
-												<MultiSelectItem
-													key={_id}
-													value={_id}
-												>
-													<div className="flex flex-col gap-2 items-start">
-														<span>{name}</span>
-													</div>
-												</MultiSelectItem>
-											))}
-										</MultiSelectGroup>
-									</MultiSelectContent>
-								</MultiSelect>
-
-								{errors.length ? <FieldError errors={errors} /> : null}
-							</Field>
-						)
-					}}
-				</form.Field>
+										<div className="flex flex-col gap-2 items-start">
+											<span>{name}</span>
+										</div>
+									</MultiSelectItem>
+								))}
+							</MultiSelectGroup>
+						</MultiSelect>
+					)}
+				</form.AppField>
 			</FieldGroup>
 
 			<Button
@@ -319,10 +193,12 @@ const CreateTournamentForm: FC<CreateTournamentFormPropsType> = ({ teams }) => {
 				size="lg"
 				type="submit"
 			>
-				Create Tournament
+				{tournament?._id ? 'Update' : 'Create'} Tournament
 			</Button>
 		</form>
 	)
 }
+
+const CreateTournamentForm: FC<TournamentFormPropsType> = TournamentForm
 
 export { CreateTournamentForm }

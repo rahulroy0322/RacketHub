@@ -18,7 +18,7 @@ const AdminForm: FC<AdminFormPropsType> = ({
 	description,
 	children,
 }) => (
-	<div className="h-[calc(100vh-(1rem*2))] flex items-center justify-center overflow-hidden">
+	<div className="h-[calc(90vh-(1rem*2))] flex items-center justify-center overflow-hidden">
 		<Card className="w-full max-h-3/4 max-w-96">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
