@@ -21,8 +21,7 @@ const HomePage: FC = () => {
 			<div className="text-center space-y-4">
 				<h2 className="text-4xl font-bold text-slate-900">🎾 RacketHub</h2>
 				<p className="text-lg text-slate-600">
-					Your ultimate platform for hosting and following racket sports
-					tournaments
+					The ultimate platform for following local sports tournaments
 				</p>
 				<Button
 					asChild

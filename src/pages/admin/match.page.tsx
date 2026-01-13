@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { AdminForm } from '@/components/app/form/admin'
+import { AdminForm } from '@/components/app/forms/admin'
 import { CreateMatchForm } from '@/components/app/forms/match'
 import { Route } from '@/routes/admin/$id/match'
 
