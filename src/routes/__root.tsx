@@ -16,9 +16,9 @@ type MyRouterContext = {
 }
 
 const RootLayOut: FC = () => (
-	<div className="min-h-screen bg-linear-to-b from-slate-100 to-blue-200">
+	<div className="h-screen bg-linear-to-b from-slate-100 to-blue-200 flex flex-col">
 		<Header />
-		<main className="p-4">
+		<main className="p-4 grow overflow-auto relative">
 			<Outlet />
 		</main>
 		<Toaster
