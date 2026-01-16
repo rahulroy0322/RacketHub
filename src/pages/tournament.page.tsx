@@ -11,6 +11,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card'
+import { adminRoles } from '@/constants/role'
+import useAuth from '@/context/auth'
 import { updateTournament } from '@/data/admin'
 import { cn } from '@/lib/utils'
 import { Route } from '@/routes/tournaments/$id/index'
@@ -89,6 +91,8 @@ const TournamentPage: FC = () => {
 	const { _id, name, status, location, startDate, description } =
 		useLoaderData()
 
+		const {user} = useAuth()
+
 	return (
 		<div className="max-w-md mx-auto space-y-4">
 			<Card>
@@ -112,6 +116,9 @@ const TournamentPage: FC = () => {
 								<span>{location}</span>
 							</p>
 						</div>
+
+		{!user || !adminRoles.includes(user.role) ? null : (
+					<>
 						{!!(status === 'upcoming') && (
 							<TournamentStatusButton
 								error={({ message }) => (
@@ -144,6 +151,10 @@ const TournamentPage: FC = () => {
 								Compleated
 							</TournamentStatusButton>
 						)}
+					</>
+				)}
+
+					
 					</CardDescription>
 				</CardHeader>
 			</Card>
