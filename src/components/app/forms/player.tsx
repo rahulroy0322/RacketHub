@@ -131,15 +131,6 @@ type UpdatePlayerFormPropsType = {
 }
 
 const UpdatePlayerForm: FC<UpdatePlayerFormPropsType> = PlayerForm
-const CreatePlayerForm: FC = () => {
-	return (
-		<PlayerForm
-			user={{
-				_id: 'axa',
-				name: 'lxnlasmx',
-			}}
-		/>
-	)
-}
+const CreatePlayerForm: FC = PlayerForm
 
 export { CreatePlayerForm, UpdatePlayerForm }

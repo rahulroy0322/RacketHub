@@ -72,6 +72,7 @@ const TeamControls: FC = () => {
 	}, [teamB?._id])
 
 	if (!teamA || !teamB) {
+		// This Should never happen
 		return null
 	}
 

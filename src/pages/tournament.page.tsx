@@ -91,7 +91,7 @@ const TournamentPage: FC = () => {
 	const { _id, name, status, location, startDate, description } =
 		useLoaderData()
 
-		const {user} = useAuth()
+	const { user } = useAuth()
 
 	return (
 		<div className="max-w-md mx-auto space-y-4">
@@ -117,44 +117,42 @@ const TournamentPage: FC = () => {
 							</p>
 						</div>
 
-		{!user || !adminRoles.includes(user.role) ? null : (
-					<>
-						{!!(status === 'upcoming') && (
-							<TournamentStatusButton
-								error={({ message }) => (
-									<div>
-										<p>Error :</p>
-										<span>{message}</span>
-									</div>
+						{!user || !adminRoles.includes(user.role) ? null : (
+							<>
+								{!!(status === 'upcoming') && (
+									<TournamentStatusButton
+										error={({ message }) => (
+											<div>
+												<p>Error :</p>
+												<span>{message}</span>
+											</div>
+										)}
+										loading={'Making Touranment Live'}
+										status="live"
+										success={'Now Tournament Live'}
+										touranmentId={_id}
+									>
+										Go Live
+									</TournamentStatusButton>
 								)}
-								loading={'Making Touranment Live'}
-								status="live"
-								success={'Now Tournament Live'}
-								touranmentId={_id}
-							>
-								Go Live
-							</TournamentStatusButton>
-						)}
-						{!!(status === 'live') && (
-							<TournamentStatusButton
-								error={({ message }) => (
-									<div>
-										<p>Error :</p>
-										<span>{message}</span>
-									</div>
+								{!!(status === 'live') && (
+									<TournamentStatusButton
+										error={({ message }) => (
+											<div>
+												<p>Error :</p>
+												<span>{message}</span>
+											</div>
+										)}
+										loading={'Making Touranment Compleat'}
+										status="completed"
+										success={'Tournament Ended'}
+										touranmentId={_id}
+									>
+										Compleated
+									</TournamentStatusButton>
 								)}
-								loading={'Making Touranment Compleat'}
-								status="completed"
-								success={'Tournament Ended'}
-								touranmentId={_id}
-							>
-								Compleated
-							</TournamentStatusButton>
+							</>
 						)}
-					</>
-				)}
-
-					
 					</CardDescription>
 				</CardHeader>
 			</Card>

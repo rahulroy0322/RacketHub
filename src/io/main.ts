@@ -2,9 +2,7 @@ import type { CommentaryTypesType } from '@/constants/type'
 import { BACKEND_URL } from '@/constants/url'
 import { addComment } from '@/stores/comments.store'
 import { useLive } from '@/stores/live.store'
-import type { CommentaryType } from '@/types'
-
-// const socket = new WebSocket('ws://localhost:8000')
+import type { CommentaryType, IOCommentaryType } from '@/types'
 
 const socket = new WebSocket(BACKEND_URL)
 
@@ -12,43 +10,29 @@ socket.addEventListener('error', console.error)
 
 type EventType =
 	| {
-			type: CommentaryTypesType
-			data: CommentaryType
+			type: CommentaryTypesType | 'compleate'
+			data: IOCommentaryType
 	  }
 	| {
 			type: 'join:room'
 			data: string
 	  }
 
-const fair = (data: CommentaryType) => {
-	const { teamA, teamB, scoreA, scoreB } = useLive.getState()
-	const teamId = data.teamId
+const score = (scores: IOCommentaryType['scores']) => {
+	const { teamA, teamB } = useLive.getState()
 
-	if (teamId === teamA?._id) {
-		useLive.setState({
-			scoreA: scoreA + 1,
-		})
-	} else if (teamId === teamB?._id) {
-		useLive.setState({
-			scoreB: scoreB + 1,
-		})
+	if (!teamA || !teamB) {
+		return
 	}
-}
 
-const out = (data: CommentaryType) => {
-	const { scoreA, scoreB, teamA, teamB } = useLive.getState()
-
-	const teamId = data.teamId
-
-	if (teamId === teamA?._id) {
-		useLive.setState({
-			scoreB: scoreB + 1,
-		})
-	} else if (teamId === teamB?._id) {
-		useLive.setState({
-			scoreB: scoreA + 1,
-		})
+	if (!(teamA._id in scores) || !(teamB._id in scores)) {
+		return
 	}
+
+	useLive.setState({
+		scoreA: scores[teamA._id],
+		scoreB: scores[teamB._id],
+	})
 }
 
 socket.addEventListener('message', (ev) => {
@@ -56,14 +40,14 @@ socket.addEventListener('message', (ev) => {
 		const { type, data } = JSON.parse(ev.data) as EventType
 
 		if (type !== 'join:room') {
-			addComment(data)
+			// ! TODO
+			addComment(data as unknown as CommentaryType)
 		}
 
 		switch (type) {
 			case 'join:room':
 				return
 			case 'p:fair':
-				return fair(data)
 			case 'p:out':
 			case 'ir:net':
 			case 'ir:touch':
@@ -76,8 +60,10 @@ socket.addEventListener('message', (ev) => {
 			case 's:contact':
 			case 's:court':
 			case 's:flick':
-				return out(data)
+				return score(data.scores)
 
+			case 'compleate':
+				return
 			default:
 				console.error(
 					{

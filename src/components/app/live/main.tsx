@@ -14,7 +14,7 @@ import { LiveScore } from './score'
 const { useParams } = Route
 
 const Live: FC = () => {
-	const { matchId } = useParams()
+	const { matchId, id } = useParams()
 	return (
 		<div className="max-w-md mx-auto space-y-4">
 			<Card className="relative">
@@ -23,7 +23,10 @@ const Live: FC = () => {
 					<CardDescription>Control panel for active match</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<CompleateButton matchId={matchId} />
+					<CompleateButton
+						matchId={matchId}
+						tournamentId={id}
+					/>
 					<LiveScore />
 				</CardContent>
 			</Card>

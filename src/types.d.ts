@@ -52,6 +52,15 @@ type CommentaryType = {
 	teamId: TeamType['_id']
 	playerId?: PlayerType
 	text?: string
+	scoreA: number
+	scoreB: number
+}
+
+type IOCommentaryType = Pick<
+	CommentaryType,
+	'id' | 'text' | 'timestamp' | 'type'
+> & {
+	scores: Record<string, number>
 }
 
 type SuccessType<T = Record<string, unknown>> = {
@@ -77,6 +86,7 @@ type UserType = {
 }
 
 export type {
+	IOCommentaryType,
 	UserType,
 	AnyType,
 	TournamentStatusType,

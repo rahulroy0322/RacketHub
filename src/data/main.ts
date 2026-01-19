@@ -18,18 +18,16 @@ const saveToDb = async (id: string, data: CommentaryType) => {
 	})
 
 	const _data = (await res.json()) as ResType<{
-		comments: MatchType & {
-			comments: CommentaryType[]
+		comment: MatchType & {
+			comment: CommentaryType
 		}
 	}>
 
 	if (!_data.success) {
 		return _data
 	}
-	// biome-ignore lint/suspicious/noConsole: debug only
-	console.log('created', import.meta.env.DEV ? _data.data : undefined)
 
-	return _data.data.comments
+	return _data.data.comment
 }
 
 const destroyTournament = async (id: string) => {

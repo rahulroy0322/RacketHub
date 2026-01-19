@@ -227,7 +227,7 @@ const columns: ColumnDef<TournamentType>[] = [
 			const { _id: id, name } = row.original
 
 			return (
-				<div className="flex gap-1 justify-center items-center">
+				<div className="flex gap-2 justify-center items-center">
 					<Link to="/">
 						<Edit size={15} />
 					</Link>
