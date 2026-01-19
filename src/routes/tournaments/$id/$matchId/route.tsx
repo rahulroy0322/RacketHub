@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { type FC, useEffect } from 'react'
 import '@/io/main'
+import { Loading } from '@/components/app/loading'
 import { BASE_URL } from '@/constants/url'
 import { send } from '@/io/main'
 import useLive, { setTeam, setTeamId } from '@/stores/live.store'
@@ -50,6 +51,7 @@ const MatchLayout: FC = () => {
 
 const Route = createFileRoute('/tournaments/$id/$matchId')({
 	component: MatchLayout,
+	pendingComponent: Loading,
 	loader: async ({ context, params: { matchId } }) => {
 		const data = await context.queryClient.fetchQuery({
 			queryKey: ['match', matchId],

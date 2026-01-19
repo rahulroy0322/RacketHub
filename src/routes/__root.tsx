@@ -5,6 +5,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import type { FC } from 'react'
 import { Toaster } from 'sonner'
 import { Header } from '@/components/app/Header'
+import { Loading } from '@/components/app/loading'
 import type { AuthContextType } from '@/context/auth'
 import { ErrorPage } from '@/pages/error.page'
 import { NotFoundPage } from '@/pages/not-found.page'
@@ -45,6 +46,7 @@ const RootLayOut: FC = () => (
 
 const Route = createRootRouteWithContext<MyRouterContext>()({
 	component: RootLayOut,
+	pendingComponent: Loading,
 	errorComponent: ErrorPage,
 	notFoundComponent: NotFoundPage,
 })

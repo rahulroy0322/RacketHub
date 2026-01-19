@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Loading } from '@/components/app/loading'
 import { BASE_URL } from '@/constants/url'
 import { CommentaryPage } from '@/pages/comentary.page'
 import type { CommentaryType, MatchType, ResType } from '@/types'
@@ -21,7 +22,7 @@ const fetchComments = async (id: string) => {
 
 const Route = createFileRoute('/tournaments/$id/$matchId/comentary')({
 	component: CommentaryPage,
-
+	pendingComponent: Loading,
 	loader: async ({ context, params: { matchId } }) => {
 		const data = await context.queryClient.fetchQuery({
 			queryKey: ['comments', matchId],

@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { Loading } from '@/components/app/loading'
 import { BASE_URL } from '@/constants/url'
 import { getToken } from '@/lib/token'
 import { DashBoardPage } from '@/pages/admin/dashboard.page'
@@ -29,6 +30,7 @@ const fetchEveryThing = async () => {
 
 const Route = createFileRoute('/admin/dashboard')({
 	component: DashBoardPage,
+	pendingComponent: Loading,
 	loader: async ({ context }) => {
 		const data = await context.queryClient.fetchQuery({
 			queryKey: ['count'],

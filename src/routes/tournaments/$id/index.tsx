@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Loading } from '@/components/app/loading'
 import { BASE_URL } from '@/constants/url'
 import { TournamentPage } from '@/pages/tournament.page'
 import type { ResType, TournamentType } from '@/types'
@@ -19,6 +20,7 @@ const fetchTournament = async (id: string) => {
 
 const Route = createFileRoute('/tournaments/$id/')({
 	component: TournamentPage,
+	pendingComponent: Loading,
 	loader: async ({ context, params: { id } }) => {
 		const data = await context.queryClient.fetchQuery({
 			queryKey: ['tournament', id],
