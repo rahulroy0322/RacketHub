@@ -7,6 +7,8 @@ type UseLiveType = {
 	teamB: TeamType | null
 	scoreA: number
 	scoreB: number
+	lastPoint: TeamType['_id'] | null
+	maxPoints: number
 }
 
 const useLive = create<UseLiveType>(() => ({
@@ -15,6 +17,8 @@ const useLive = create<UseLiveType>(() => ({
 	teamB: null,
 	scoreA: 0,
 	scoreB: 0,
+	lastPoint: null,
+	maxPoints: 0,
 }))
 
 const { setState: set } = useLive

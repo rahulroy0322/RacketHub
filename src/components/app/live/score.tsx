@@ -13,4 +13,17 @@ const LiveScore: FC = () => {
 	)
 }
 
-export { LiveScore }
+const LastPoint: FC = () => {
+	const team = useLive(({ teamA, lastPoint, teamB }) =>
+		lastPoint ? (lastPoint === teamA?._id ? teamA : teamB) : null
+	)
+
+	return (
+		<h3 className="text-base font-semibold text-start flex items-center gap-2">
+			<b>Last point got:</b>
+			<span>{team?.name}</span>
+		</h3>
+	)
+}
+
+export { LiveScore, LastPoint }

@@ -9,7 +9,7 @@ import { updateMatch } from '@/data/admin'
 import { saveToDb } from '@/data/main'
 import { send } from '@/io/main'
 import useLive from '@/stores/live.store'
-import type { CommentaryType, IOCommentaryType } from '@/types'
+import type { CommentaryType, IOCommentaryType, TeamType } from '@/types'
 
 const makeComment = (
 	props: Pick<CommentaryType, 'type' | 'text' | 'teamId' | 'scoreA' | 'scoreB'>
@@ -46,18 +46,134 @@ const commentToIoComment = ({
 	}
 }
 
+const getScore = (
+	{
+		team,
+		teamId,
+		score,
+	}: {
+		teamId: string
+		team: TeamType
+		score: number
+	},
+	fair: boolean = false
+): number => {
+	const { lastPoint, maxPoints } = useLive.getState()
+
+	if (!lastPoint || !maxPoints) {
+		// ! This should never called
+		throw new Error('This should never called')
+	}
+
+	if (score >= maxPoints) {
+		return score
+	}
+	if (team._id !== teamId) {
+		return score
+	}
+
+	if (score === 0) {
+		if (fair) {
+			if (lastPoint !== team._id) {
+				return 0
+			}
+		} else {
+			if (lastPoint === team._id) {
+				return 0
+			}
+		}
+	}
+	return ++score
+}
+
+const checkMatchWin = (
+	{
+		team,
+		score,
+	}: {
+		team: TeamType
+		score: number
+	},
+	fair: boolean = false
+): boolean => {
+	const { lastPoint, maxPoints } = useLive.getState()
+
+	if (!lastPoint || !maxPoints) {
+		// ! This should never called
+		throw new Error('This should never called')
+	}
+
+	if (score < maxPoints) {
+		return false
+	}
+
+	if (fair) {
+		if (lastPoint !== team._id) {
+			return false
+		}
+	} else {
+		if (lastPoint !== team._id) {
+			return false
+		}
+	}
+
+	return true
+}
+
+const matchCompleate = async ({ matchId }: { matchId: string }) => {
+	const { scoreA, scoreB, lastPoint } = useLive.getState()
+	const comment = makeComment({
+		type: 'compleate',
+		text: 'Match Compleated',
+		teamId: lastPoint ?? '',
+		scoreA,
+		scoreB,
+	})
+	bordCust(
+		'compleate' as unknown as CommentaryTypesType,
+		commentToIoComment(comment)
+	)
+
+	const [_comment, match] = await Promise.all([
+		saveToDb(matchId, comment),
+		updateMatch(matchId, { status: 'completed' }),
+	])
+
+	if (!comment || !match) {
+		throw new Error('some thing went wrong')
+	}
+
+	if ('error' in _comment) {
+		if ('message' in _comment.error) {
+			throw _comment.error
+		}
+		throw new Error(_comment.error)
+	}
+
+	if ('error' in match) {
+		if ('message' in match.error) {
+			throw match.error
+		}
+		throw new Error(match.error)
+	}
+}
+
 type ControllButtonPropsType = {
 	point: CommentaryTypesType
 	matchId: string
 } & Parameters<typeof Button>[0]
 
 const ControllButton: FC<ControllButtonPropsType> = ({ point, matchId }) => {
+	const router = useRouter()
+
 	const handleClick = useCallback(() => {
-		const { scoreA, scoreB, teamId, teamA, teamB } = useLive.getState()
+		const { scoreA, scoreB, teamId, teamA, teamB, lastPoint } =
+			useLive.getState()
 
 		if (!teamA || !teamB || !teamId) {
 			return
 		}
+
 		const data: CommentaryType = makeComment({
 			scoreA,
 			scoreB,
@@ -67,17 +183,76 @@ const ControllButton: FC<ControllButtonPropsType> = ({ point, matchId }) => {
 		})
 
 		if (point === 'p:fair') {
-			if (teamA._id === teamId) {
-				data.scoreA = scoreA + 1
-			} else {
-				data.scoreB = scoreB + 1
-			}
+			data.scoreA = getScore(
+				{
+					score: scoreA,
+					team: teamA,
+					teamId,
+				},
+				true
+			)
+			data.scoreB = getScore(
+				{
+					score: scoreB,
+					team: teamB,
+					teamId,
+				},
+				true
+			)
+
+			useLive.setState({
+				lastPoint: teamId,
+			})
 		} else {
-			if (teamA._id !== teamId) {
-				data.scoreA = scoreA + 1
-			} else {
-				data.scoreB = scoreB + 1
-			}
+			data.scoreB = getScore({
+				score: scoreB,
+				team: teamA,
+				teamId,
+			})
+			data.scoreA = getScore({
+				score: scoreA,
+				team: teamB,
+				teamId,
+			})
+
+			useLive.setState({
+				lastPoint: teamId === teamA._id ? teamB._id : teamA._id,
+			})
+		}
+
+		const hasWin = checkMatchWin(
+			lastPoint === teamA._id
+				? {
+						score: scoreA,
+						team: teamA,
+					}
+				: {
+						score: scoreB,
+						team: teamB,
+					},
+			point === 'p:fair'
+		)
+
+		useLive.setState(data)
+
+		if (hasWin) {
+			toast.success(
+				`Team "${
+					lastPoint === teamA._id ? teamA.name : teamB.name
+				}" had won the match.`
+			)
+
+			return matchCompleate({
+				matchId,
+			})
+				.then(() => {
+					router.invalidate({
+						sync: true,
+					})
+				})
+				.catch((e) => {
+					throw e
+				})
 		}
 
 		const _data: IOCommentaryType = commentToIoComment(data)
@@ -103,7 +278,7 @@ const ControllButton: FC<ControllButtonPropsType> = ({ point, matchId }) => {
 			default:
 				console.error(`"${point satisfies never}" does not handled`)
 		}
-	}, [point, matchId])
+	}, [point, matchId, router])
 
 	return (
 		<Button
@@ -138,41 +313,9 @@ const CompleateButton: FC<CompleateButtonPropsType> = ({
 		mutationFn: async () =>
 			toast.promise(
 				async () => {
-					const { scoreA, scoreB } = useLive.getState()
-					const comment = makeComment({
-						type: 'compleate',
-						text: 'Match Compleated',
-						teamId: '',
-						scoreA,
-						scoreB,
+					await matchCompleate({
+						matchId,
 					})
-					bordCust(
-						'compleate' as unknown as CommentaryTypesType,
-						commentToIoComment(comment)
-					)
-
-					const [_comment, match] = await Promise.all([
-						saveToDb(matchId, comment),
-						updateMatch(matchId, { status: 'completed' }),
-					])
-
-					if (!comment || !match) {
-						throw new Error('some thing went wrong')
-					}
-
-					if ('error' in _comment) {
-						if ('message' in _comment.error) {
-							throw _comment.error
-						}
-						throw new Error(_comment.error)
-					}
-
-					if ('error' in match) {
-						if ('message' in match.error) {
-							throw match.error
-						}
-						throw new Error(match.error)
-					}
 				},
 				{
 					loading: 'Ending Match',

@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import type { FC } from 'react'
+import { Compleated } from '@/components/app/compleated/main'
 import { Live } from '@/components/app/live/main'
 import { Loading } from '@/components/app/loading'
 import { Scheduled } from '@/components/app/scheduled/main'
@@ -30,7 +31,7 @@ const EventsPage: FC = () => {
 		case 'live':
 			return <Live />
 		case 'completed':
-			return
+			return <Compleated />
 
 		default:
 			throw new Error(`"${status satisfies never}" not handled yet`)

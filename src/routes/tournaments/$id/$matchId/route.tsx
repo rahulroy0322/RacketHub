@@ -5,13 +5,15 @@ import { Loading } from '@/components/app/loading'
 import { BASE_URL } from '@/constants/url'
 import { send } from '@/io/main'
 import useLive, { setTeam, setTeamId } from '@/stores/live.store'
-import type { MatchType, ResType, TeamType } from '@/types'
+import type { CommentaryType, MatchType, ResType, TeamType } from '@/types'
 
 const fetchMatch = async (id: string) => {
 	const res = await fetch(`${BASE_URL}/matches/${id}`)
 
 	const data = (await res.json()) as ResType<{
-		match: MatchType
+		match: MatchType & {
+			comments: CommentaryType[]
+		}
 	}>
 
 	if (!data.success) {
@@ -23,7 +25,8 @@ const fetchMatch = async (id: string) => {
 
 const MatchLayout: FC = () => {
 	const { matchId } = useParams()
-	const { teamAId, teamBId, scoreA, scoreB } = useLoaderData()
+	const { teamAId, teamBId, scoreA, scoreB, comments } = useLoaderData()
+	
 	useEffect(() => {
 		send({
 			type: 'join:room',
@@ -45,6 +48,12 @@ const MatchLayout: FC = () => {
 			scoreB,
 		})
 	}, [scoreA, scoreB])
+
+	useEffect(() => {
+		useLive.setState({
+			lastPoint: comments.at(0)?.teamId || null,
+		})
+	}, [comments])
 
 	return <Outlet />
 }
