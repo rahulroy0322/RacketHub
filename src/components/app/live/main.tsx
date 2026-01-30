@@ -1,9 +1,6 @@
-import {
-	type FC,
-	type FormEvent,
-	useCallback,
-	useId,
-} from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
+import { type FC, type FormEvent, useCallback, useId } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,11 +18,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
+import { startMatch } from '@/data/main'
+import { sendComment } from '@/io/main'
 import { Route } from '@/routes/tournaments/$id/$matchId/events'
 import useLive from '@/stores/live.store'
+import type { TeamType } from '@/types'
 import { CompleateButton } from './button'
 import { LiveControls, TeamControls } from './controlls'
 import { LastPoint, LiveScore } from './score'
+import { commentToIoComment, makeComment } from './utils'
 
 const { useParams } = Route
 
@@ -34,7 +35,7 @@ const defaultPoints = [3, 5, 7, 14, 21, 29] as const
 const pointToMsg = {
 	'3': 'Three',
 	'5': 'Five',
-	7: 'Seven',
+	'7': 'Seven',
 	'14': 'FourTeen',
 	'21': 'Twenty One',
 	'29': 'Twenty Nine',
@@ -48,11 +49,11 @@ const GamePoint: FC = () => {
 	return (
 		<div>
 			<Input
-				placeholder="points to win the match"
-				list={id}
-				required
-				name="points"
 				defaultValue={defaultPoint}
+				list={id}
+				name="points"
+				placeholder="points to win the match"
+				required
 			/>
 
 			<datalist id={id}>
@@ -69,28 +70,96 @@ const GamePoint: FC = () => {
 	)
 }
 
-const StartGame: FC = () => {
+const StartGame: FC<{
+	matchId: string
+}> = ({ matchId }) => {
+	const router = useRouter()
 	const teamA = useLive((state) => state.teamA)
 	const teamB = useLive((state) => state.teamB)
 
-	const handleSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
+	const { isPending, mutate } = useMutation({
+		mutationKey: ['match', teamA?._id, teamB?._id],
+		mutationFn: async ({
+			servisTeamId,
+			maxPoint,
+		}: {
+			servisTeamId: TeamType['_id']
+			maxPoint: number
+		}) =>
+			toast.promise(
+				async () => {
+					const data = makeComment({
+						scoreA: 0,
+						scoreB: 0,
+						teamId: servisTeamId,
+						type: 'toss',
+						text: `Team "${teamA?._id === servisTeamId ? teamA.name : teamB?.name}" had got service`,
+					})
 
-		const formData = new FormData(e.target as HTMLFormElement)
+					const res = await startMatch(matchId, {
+						data,
+						maxPoint,
+					})
 
-		const select = formData.get('select')
-		const points = Number(formData.get('points') || '0')
+					if (!res) {
+						throw new Error('some thing went wrong')
+					}
 
-		if (!select || !points) {
-			toast.error('Please fill every thing')
-			return
-		}
+					if ('error' in res) {
+						throw new Error(res.error.message)
+					}
 
-		useLive.setState({
-			lastPoint: select as string,
-			maxPoints: points,
-		})
-	}, [])
+					return data
+				},
+				{
+					loading: 'Starting Match',
+					success: (data) => {
+						router.invalidate({
+							sync: true,
+						})
+						sendComment({
+							type: data.type,
+							matchId,
+							data: commentToIoComment(data),
+						})
+						return 'Now The Match Started'
+					},
+					error: (e: Error) => {
+						console.error(e)
+						const { message } = e
+
+						return (
+							<div>
+								<b>Error Starting Match</b>
+								<p>{message}</p>
+							</div>
+						)
+					},
+				}
+			),
+	})
+
+	const handleSubmit = useCallback(
+		(e: FormEvent<HTMLFormElement>) => {
+			e.preventDefault()
+
+			const formData = new FormData(e.target as HTMLFormElement)
+
+			const select = formData.get('select')
+			const maxPoint = Number(formData.get('points') || '0')
+
+			if (!select || !maxPoint) {
+				toast.error('Please fill every thing')
+				return
+			}
+
+			mutate({
+				maxPoint,
+				servisTeamId: select as string,
+			})
+		},
+		[mutate]
+	)
 
 	if (useLive.getState().scoreA || useLive.getState().scoreB) {
 		return (
@@ -114,12 +183,13 @@ const StartGame: FC = () => {
 			</CardHeader>
 			<CardContent>
 				<form
+					aria-disabled={isPending}
 					className="space-y-3"
 					onSubmit={handleSubmit}
 				>
 					<Select
-						required
 						name="select"
+						required
 					>
 						<SelectTrigger>
 							<SelectValue placeholder="Select Team?" />
@@ -127,8 +197,8 @@ const StartGame: FC = () => {
 						<SelectContent>
 							{[teamA, teamB].map((team) => (
 								<SelectItem
-									value={team?._id ?? ''}
 									key={team?._id || ''}
+									value={team?._id ?? ''}
 								>
 									{team?.name}
 								</SelectItem>
@@ -138,7 +208,13 @@ const StartGame: FC = () => {
 
 					<GamePoint />
 
-					<Button>Start Game</Button>
+					<Button
+						aria-disabled={isPending}
+						disabled={isPending}
+						type="submit"
+					>
+						Start Game
+					</Button>
 				</form>
 			</CardContent>
 		</Card>
@@ -150,7 +226,7 @@ const Content: FC = () => {
 	const notInit = useLive((state) => state.lastPoint === null)
 
 	if (notInit) {
-		return <StartGame />
+		return <StartGame matchId={matchId} />
 	}
 
 	return (

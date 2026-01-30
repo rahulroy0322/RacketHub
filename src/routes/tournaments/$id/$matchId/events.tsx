@@ -1,9 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { fetchMatch } from './route'
-
-import '@/io/main'
 import { Loading } from '@/components/app/loading'
 import { EventsPage } from '@/pages/event.page'
+import { fetchMatch } from './route'
 
 const Route = createFileRoute('/tournaments/$id/$matchId/events')({
 	component: EventsPage,

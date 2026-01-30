@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import {  CardHeader, CardTitle } from '@/components/ui/card'
+import { CardHeader, CardTitle } from '@/components/ui/card'
 import useLive from '@/stores/live.store'
 
 const TeamName: FC = () => {

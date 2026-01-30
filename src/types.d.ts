@@ -36,6 +36,7 @@ type MatchType = {
 	location?: string | undefined
 	description?: string | undefined
 	name?: string | undefined
+	maxPoints: number
 }
 
 type PlayerType = {
@@ -48,7 +49,7 @@ type CommentaryType = {
 	id: string
 	// matchId: MatchType['_id']
 	timestamp: string
-	type: CommentaryTypesType | 'compleate'
+	type: CommentaryTypesType | 'compleate' | 'toss'
 	teamId: TeamType['_id']
 	playerId?: PlayerType
 	text?: string
@@ -56,10 +57,7 @@ type CommentaryType = {
 	scoreB: number
 }
 
-type IOCommentaryType = Pick<
-	CommentaryType,
-	'id' | 'text' | 'timestamp' | 'type'
-> & {
+type IOCommentaryType = Omit<CommentaryType,'scoreA'|'scoreB'> & {
 	scores: Record<string, number>
 }
 

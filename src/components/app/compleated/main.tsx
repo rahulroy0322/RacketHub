@@ -76,8 +76,10 @@ const Compleated: FC = () => {
 				<CardContent className="py-12 text-center space-y-4">
 					<p className="text-slate-500">
 						Matches Is Over and The{' '}
-						<code className="text-primary-foreground bg-primary px-1 py-0.5 rounded">{wonTeam.name}</code> team had own
-						the match.
+						<code className="text-primary-foreground bg-primary px-1 py-0.5 rounded">
+							{wonTeam.name}
+						</code>{' '}
+						team had own the match.
 					</p>
 					<GoBack />
 				</CardContent>

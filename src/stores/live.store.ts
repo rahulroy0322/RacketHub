@@ -31,6 +31,11 @@ const setTeamId = (teamId: string | null) =>
 const setTeam = (teams: { teamA: TeamType | null; teamB: TeamType | null }) =>
 	set(teams)
 
-export { useLive, setTeamId, setTeam }
+const setLastPoint = (lastPoint: TeamType['_id'] | null = null) =>
+	set({
+		lastPoint,
+	})
+
+export { useLive, setTeamId, setTeam, setLastPoint }
 
 export default useLive

@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Loading } from '@/components/app/loading'
+
 import { MatchPage } from '@/pages/matche.page'
 import { fetchMatch } from './route'
 

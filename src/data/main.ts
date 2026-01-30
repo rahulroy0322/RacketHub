@@ -48,4 +48,31 @@ const destroyTournament = async (id: string) => {
 	}
 	return _data.data.tournament
 }
-export { saveToDb, destroyTournament }
+
+const startMatch = async (
+	id: string,
+	{ data, maxPoint }: { data: CommentaryType; maxPoint: number }
+) => {
+	const res = await fetch(`${BASE_URL}/matches/${id}/start`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${getToken()}`,
+		},
+		body: JSON.stringify({ data, maxPoints: maxPoint }),
+	})
+
+	const _data = (await res.json()) as ResType<{
+		match: MatchType & {
+			comment: CommentaryType[]
+		}
+	}>
+
+	if (!_data.success) {
+		return _data
+	}
+
+	return _data.data.match
+}
+
+export { saveToDb, destroyTournament, startMatch }
