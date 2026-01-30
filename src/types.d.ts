@@ -57,7 +57,7 @@ type CommentaryType = {
 	scoreB: number
 }
 
-type IOCommentaryType = Omit<CommentaryType,'scoreA'|'scoreB'> & {
+type IOCommentaryType = Omit<CommentaryType, 'scoreA' | 'scoreB'> & {
 	scores: Record<string, number>
 }
 

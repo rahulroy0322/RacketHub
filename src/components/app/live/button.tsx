@@ -8,7 +8,7 @@ import { typeToMsgMap, typeToTitleMap } from '@/constants/type-map'
 import { saveToDb } from '@/data/main'
 import { sendComment } from '@/io/main'
 import useLive from '@/stores/live.store'
-import type { CommentaryType, } from '@/types'
+import type { CommentaryType } from '@/types'
 import {
 	checkMatchWin,
 	commentToIoComment,
