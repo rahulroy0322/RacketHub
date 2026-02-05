@@ -16,7 +16,6 @@ const Route = createFileRoute('/admin')({
 				to: '/',
 			})
 		}
-
 		if (location.href === '/admin' || location.href === '/admin/') {
 			throw redirect({
 				to: '/admin/dashboard',

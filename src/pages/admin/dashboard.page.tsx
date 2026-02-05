@@ -17,6 +17,12 @@ const DashBoardPage: FC = () => {
 
 	return (
 		<div className="pt-4">
+			<Button
+				asChild
+				variant="link"
+			>
+				<Link to="/admin/logs">Go To Logs Page Page</Link>
+			</Button>
 			<div className="grid grid-cols-2 gap-1.5">
 				<AdminCard
 					description="Total Tournaments"

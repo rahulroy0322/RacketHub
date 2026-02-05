@@ -63,7 +63,6 @@ const DataTable = <T,>({ data, columns }: DataTablePropsType<T>): ReactNode => {
 			sorting,
 			globalFilter,
 		},
-
 		getPaginationRowModel: getPaginationRowModel(),
 		initialState: {
 			pagination: {
